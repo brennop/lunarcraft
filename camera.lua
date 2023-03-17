@@ -125,6 +125,11 @@ function Camera:update()
 
   local block, next = self:hit()
 
+  if block then
+    local x, y, z = block:unpack()
+    self.world:setBlock(x, y, z, 0)
+  end
+
   debug("block", block, next)
 end
 
@@ -132,97 +137,54 @@ function Camera:draw()
 end
 
 function Camera:hit()
-  local position = self.position:clone()
-  local block = (self.position + Vector(.5,.5,.5)):floored()
-  local distance = 0
+  local x, y, z    = self.position:unpack()
+  local rx, ry, rz = self.position:unpack()
+  local fx, fy, fz = (-self.forward):unpack()
+  local dx, dy, dz
 
-  for i = 1, 10 do
-    local localPos = position - block
-    local absolute = self.forward:clone()
-    local sign = Vector(1, 1, 1)
+  local ytan = -math.tan(self.yaw)
+  local ptan = math.tan(self.pitch)
 
-    if self.forward.x < 0 then
-      absolute.x = -absolute.x
-      localPos.x = -localPos.x
-      sign.x = -1
-    end
+  local dof = 0
 
-    if self.forward.y < 0 then
-      absolute.y = -absolute.y
-      localPos.y = -localPos.y
-      sign.y = -1
-    end
-
-    if self.forward.z < 0 then
-      absolute.z = -absolute.z
-      localPos.z = -localPos.z
-      sign.z = -1
-    end
-
-    local lx, ly, lz = localPos:unpack()
-    local vx, vy, vz = absolute:unpack()
-
-    if vx > 0 then
-      local x = 0.5
-      local y = (0.5 - lx) / vx * vy + ly
-      local z = (0.5 - lx) / vx * vz + lz
-
-
-      if y >= -0.5 and y <= 0.5 and z >= -0.5 and z <= 0.5 then
-        local dist = (Vector(x,y,z) - Vector(lx, ly, lz)):length()
-        local nextBlock = block + Vector(sign.x, 0, 0)
-
-        if self.world:getBlock(nextBlock:unpack()) > 0 then
-          return currentBlock, nextBlock
-        else
-          position = position + self.forward * distance
-          block = nextBlock
-          distance = distance + dist
-        end
-      end
-    end
-
-    if vy > 0 then
-      local x = (0.5 - ly) / vy * vx + lx
-      local y = 0.5
-      local z = (0.5 - ly) / vy * vz + lz
-
-      if x >= -0.5 and x <= 0.5 and z >= -0.5 and z <= 0.5 then
-        local dist = (Vector(x,y,z) - Vector(lx, ly, lz)):length()
-        local nextBlock = block + Vector(0, sign.y, 0)
-
-        if self.world:getBlock(nextBlock:unpack()) > 0 then
-          return currentBlock, nextBlock
-        else
-          position = position + self.forward * distance
-          block = nextBlock
-          distance = distance + dist
-        end
-      end
-    end
-
-    if vz > 0 then
-      local x = (0.5 - lz) / vz * vx + lx
-      local y = (0.5 - lz) / vz * vy + ly
-      local z = 0.5
-
-      if x >= -0.5 and x <= 0.5 and y >= -0.5 and y <= 0.5 then
-        local dist = (Vector(x,y,z) - Vector(lx, ly, lz)):length()
-        local nextBlock = block + Vector(0, 0, sign.z)
-
-        if self.world:getBlock(nextBlock:unpack()) > 0 then
-          return currentBlock, nextBlock
-        else
-          position = position + self.forward * distance
-          block = nextBlock
-          distance = distance + dist
-        end
-      end
-    end
+  -- x rays
+  if fx > 0 then -- looking right
+    rx = math.floor(x) + 1
+    ry = (x - rx) * ptan + y
+    rz = (x - rx) * ytan + z
+    dx = 1
+    dy = -1 * ptan
+    dz = -1 * ytan
+  elseif fx < 0 then
+    rx = math.floor(x)
+    rz = (x - rx) * ytan + z
+    ry = (x - rx) * ptan + y
+    dx = -1
+    dy = 1 * ptan
+    dz = 1 * ytan
+  else
+    dof = 16
   end
 
-  debug("nil")
-  return nil
+  while dof < 16 do
+    local bx = math.floor(rx) + 1
+    local by = math.floor(ry) + 1
+    local bz = math.floor(rz) + 1
+
+    debug(bx, by, bz)
+
+    local block = self.world:getBlock(bx, by, bz)
+
+    if block > 0 then
+      dof = 16
+      return Vector(bx, by, bz)
+    else
+      rx = rx + dx
+      ry = ry + dy
+      rz = rz + dz
+      dof = dof + 1
+    end
+  end
 end
 
 return Camera
