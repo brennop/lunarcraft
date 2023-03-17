@@ -1,5 +1,8 @@
 Object = require "lib.classic"
 
+CHUNK_SIZE = 16
+CHUNK_HEIGHT = 16
+
 local Matrix = require "matrix"
 local Camera = require "camera"
 
@@ -32,6 +35,8 @@ end
 
 function love.load()
   love.graphics.setDepthMode("lequal", true)
+  love.graphics.setMeshCullMode("back")
+
   love.mouse.setRelativeMode(true)
   love.graphics.setDefaultFilter("nearest", "nearest")
 
@@ -39,14 +44,9 @@ function love.load()
 
   tileset = love.graphics.newImage("tileset.png")
 
-  local Chunk = require "chunk"
+  local World = require "world"
 
-  chunks = {}
-  for i = -2, 2 do
-    for j = -2, 2 do
-      table.insert(chunks, Chunk(i, -2, j))
-    end
-  end
+  world = World()
 
   camera = Camera()
 end
@@ -62,9 +62,7 @@ function love.draw()
   shader:send("viewMatrix", camera.view)
   shader:send("projectionMatrix", camera.projection)
 
-  for _, chunk in ipairs(chunks) do
-    chunk:draw()
-  end
+  world:draw()
 
   love.graphics.setShader()
 

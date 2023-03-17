@@ -8,7 +8,7 @@ local cos, sin = math.cos, math.sin
 local w, h = 400, 300
 
 function Camera:new()
-  self.position = Vector(0, 0, 0)
+  self.position = Vector(0, 18, 0)
 
   self.view = Matrix()
   self.projection = Matrix()
