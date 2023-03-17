@@ -38,7 +38,7 @@ function World:getBlock(x, y, z)
     return chunk:getBlock(x, y, z)
   end
 
-  return nil
+  return 0
 end
 
 function World:setBlock(x, y, z, block)

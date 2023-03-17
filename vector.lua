@@ -79,4 +79,8 @@ function Vector:normalized()
   return Vector(self.x / length, self.y / length, self.z / length)
 end
 
+function Vector:floored()
+  return Vector(math.floor(self.x), math.floor(self.y), math.floor(self.z))
+end
+
 return Vector

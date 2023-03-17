@@ -2,6 +2,7 @@ local Chunk = Object:extend()
 
 local blockTypes = require "blocks"
 local Vector = require "vector"
+local Matrix = require "matrix"
 
 local format = {
   { "VertexPosition", "float", 3 },
@@ -41,6 +42,8 @@ function Chunk:new(x, y, z, world)
   maxVertices = CHUNK_SIZE * CHUNK_HEIGHT * CHUNK_SIZE * 6 * 6
   self.mesh = love.graphics.newMesh(format, maxVertices, "triangles")
   self.mesh:setTexture(tileset)
+
+  self.model = Matrix()
 end
 
 function Chunk:updateMesh()
@@ -108,9 +111,8 @@ function Chunk:setBlock(x, y, z, block)
 end
 
 function Chunk:draw()
-  if self.mesh then
-    love.graphics.draw(self.mesh)
-  end
+  shader:send("modelMatrix", self.model)
+  love.graphics.draw(self.mesh)
 end
 
 return Chunk

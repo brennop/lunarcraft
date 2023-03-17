@@ -21,11 +21,11 @@ end
 local vert = [[
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
-// uniform mat4 modelMatrix;
+uniform mat4 modelMatrix;
 
 vec4 position( mat4 transform_projection, vec4 vertexPosition )
 {
-    return projectionMatrix * viewMatrix * vertexPosition;
+    return projectionMatrix * viewMatrix * modelMatrix * vertexPosition;
 }
 ]]
 
@@ -35,7 +35,7 @@ end
 
 function love.load()
   love.graphics.setDepthMode("lequal", true)
-  love.graphics.setMeshCullMode("back")
+  -- love.graphics.setMeshCullMode("back")
 
   love.mouse.setRelativeMode(true)
   love.graphics.setDefaultFilter("nearest", "nearest")
@@ -65,10 +65,12 @@ function love.draw()
   shader:send("projectionMatrix", camera.projection)
 
   world:draw()
+  camera:draw()
 
   love.graphics.setShader()
 
-  camera:draw()
+  local w, h = love.graphics.getDimensions()
+  love.graphics.circle("fill", w / 2, h / 2, 2)
 
   debug("FPS:", love.timer.getFPS())
 

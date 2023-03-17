@@ -28,6 +28,19 @@ function Camera:new(world)
 
   self._fov = 1 / math.tan(self.fov / 2 * math.pi / 180)
 
+  self.mesh = love.graphics.newMesh({
+    { "VertexPosition", "float", 3 },
+    { "VertexTexCoord", "float", 2 },
+  }, {
+    { -0.5,  0.5, 0.51, 0, 0 },
+    { -0.5, -0.5, 0.51, 1, 1 },
+    {  0.5, -0.5, 0.51, 0, 1 },
+    {  0.5,  0.5, 0.51, 1, 0 },
+  }, "fan")
+
+  self.model = Matrix()
+  self.model[8] = self.position.y
+
   self:updateDirection(0,0)
   self:updateProjection()
   self:updateView()
@@ -110,36 +123,106 @@ function Camera:update()
 
   self:updateView()
 
-  local block, x, y, z = self:getHit()
+  local block, next = self:hit()
 
-  debug("block", block, x, y, z)
-  if block > 0 and love.mouse.isDown(1) then
-    self.world:setBlock(x, y, z, 0)
-  end
+  debug("block", block, next)
 end
 
 function Camera:draw()
-  love.graphics.setColor(1, 1, 1)
-  love.graphics.circle("fill", w, h, 2)
 end
 
-local DOF = 16
-function Camera:getHit()
-  local x, y, z = self.position:unpack()
-  local dx, dy, dz = (-self.forward):unpack()
+function Camera:hit()
+  local position = self.position:clone()
+  local block = (self.position + Vector(.5,.5,.5)):floored()
+  local distance = 0
 
-  for dof = 1, DOF do
-    local fx, fy, fz = math.ceil(x-0.5), math.ceil(y-0.5), math.ceil(z-0.5)
-    local block = self.world:getBlock(fx, fy, fz)
+  for i = 1, 10 do
+    local localPos = position - block
+    local absolute = self.forward:clone()
+    local sign = Vector(1, 1, 1)
 
-    if block > 0 then
-      return block, fx, fy, fz
+    if self.forward.x < 0 then
+      absolute.x = -absolute.x
+      localPos.x = -localPos.x
+      sign.x = -1
     end
 
-    x, y, z = x + dx, y + dy, z + dz
+    if self.forward.y < 0 then
+      absolute.y = -absolute.y
+      localPos.y = -localPos.y
+      sign.y = -1
+    end
+
+    if self.forward.z < 0 then
+      absolute.z = -absolute.z
+      localPos.z = -localPos.z
+      sign.z = -1
+    end
+
+    local lx, ly, lz = localPos:unpack()
+    local vx, vy, vz = absolute:unpack()
+
+    if vx > 0 then
+      local x = 0.5
+      local y = (0.5 - lx) / vx * vy + ly
+      local z = (0.5 - lx) / vx * vz + lz
+
+
+      if y >= -0.5 and y <= 0.5 and z >= -0.5 and z <= 0.5 then
+        local dist = (Vector(x,y,z) - Vector(lx, ly, lz)):length()
+        local nextBlock = block + Vector(sign.x, 0, 0)
+
+        if self.world:getBlock(nextBlock:unpack()) > 0 then
+          return currentBlock, nextBlock
+        else
+          position = position + self.forward * distance
+          block = nextBlock
+          distance = distance + dist
+        end
+      end
+    end
+
+    if vy > 0 then
+      local x = (0.5 - ly) / vy * vx + lx
+      local y = 0.5
+      local z = (0.5 - ly) / vy * vz + lz
+
+      if x >= -0.5 and x <= 0.5 and z >= -0.5 and z <= 0.5 then
+        local dist = (Vector(x,y,z) - Vector(lx, ly, lz)):length()
+        local nextBlock = block + Vector(0, sign.y, 0)
+
+        if self.world:getBlock(nextBlock:unpack()) > 0 then
+          return currentBlock, nextBlock
+        else
+          position = position + self.forward * distance
+          block = nextBlock
+          distance = distance + dist
+        end
+      end
+    end
+
+    if vz > 0 then
+      local x = (0.5 - lz) / vz * vx + lx
+      local y = (0.5 - lz) / vz * vy + ly
+      local z = 0.5
+
+      if x >= -0.5 and x <= 0.5 and y >= -0.5 and y <= 0.5 then
+        local dist = (Vector(x,y,z) - Vector(lx, ly, lz)):length()
+        local nextBlock = block + Vector(0, 0, sign.z)
+
+        if self.world:getBlock(nextBlock:unpack()) > 0 then
+          return currentBlock, nextBlock
+        else
+          position = position + self.forward * distance
+          block = nextBlock
+          distance = distance + dist
+        end
+      end
+    end
   end
 
-  return 0, 0, 0, 0
+  debug("nil")
+  return nil
 end
 
 return Camera
