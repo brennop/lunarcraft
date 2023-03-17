@@ -1,22 +1,21 @@
-local Object = require "lib.classic"
-local Block = Object:extend()
-
 local Vector = require "vector"
 local Matrix = require "matrix"
 
 local cube = require "cube"
 
-function Block:new()
-  self.mesh = cube({
-    { 3, 30 },
-    { 3, 16 },
-    { 3, 30 },
-    { 3, 31 },
-    { 3, 30 },
-    { 3, 30 }
-  })
+local Block = Object:extend()
 
-  self.position = Vector(0, 0, 0)
+Block.mesh = cube({
+  { 3, 30 },
+  { 3, 16 },
+  { 3, 30 },
+  { 3, 31 },
+  { 3, 30 },
+  { 3, 30 }
+})
+
+function Block:new(x, y, z)
+  self.position = Vector(x, y, z)
 
   self.model = Matrix()
 

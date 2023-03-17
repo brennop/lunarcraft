@@ -1,5 +1,3 @@
-local Object = require "lib.classic"
-
 local Vector = Object:extend()
 
 function Vector:new(x, y, z)

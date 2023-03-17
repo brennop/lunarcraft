@@ -1,5 +1,3 @@
-local Object = require "lib.classic"
-
 local Matrix = Object:extend()
 
 function Matrix:new()

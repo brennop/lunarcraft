@@ -1,10 +1,9 @@
+Object = require "lib.classic"
+
 local Matrix = require "matrix"
 local Camera = require "camera"
-local Block = require "block"
 
 local camera
-
-local block
 
 _debug = {}
 function debug(...)
@@ -19,11 +18,11 @@ end
 local vert = [[
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
-uniform mat4 modelMatrix;
+// uniform mat4 modelMatrix;
 
 vec4 position( mat4 transform_projection, vec4 vertexPosition )
 {
-    return projectionMatrix * viewMatrix * modelMatrix * vertexPosition;
+    return projectionMatrix * viewMatrix * vertexPosition;
 }
 ]]
 
@@ -40,7 +39,15 @@ function love.load()
 
   tileset = love.graphics.newImage("tileset.png")
 
-  block = Block()
+  local Chunk = require "chunk"
+
+  chunks = {}
+  for i = -2, 2 do
+    for j = -2, 2 do
+      table.insert(chunks, Chunk(i, -2, j))
+    end
+  end
+
   camera = Camera()
 end
 
@@ -55,7 +62,9 @@ function love.draw()
   shader:send("viewMatrix", camera.view)
   shader:send("projectionMatrix", camera.projection)
 
-  block:draw()
+  for _, chunk in ipairs(chunks) do
+    chunk:draw()
+  end
 
   love.graphics.setShader()
 

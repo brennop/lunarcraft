@@ -1,5 +1,3 @@
-local Object = require "lib.classic"
-
 local Camera = Object:extend()
 
 local Vector = require "vector"
@@ -10,7 +8,7 @@ local cos, sin = math.cos, math.sin
 local w, h = 400, 300
 
 function Camera:new()
-  self.position = Vector(0, 0, 5)
+  self.position = Vector(0, 0, 0)
 
   self.view = Matrix()
   self.projection = Matrix()
@@ -105,7 +103,7 @@ function Camera:update()
   local dir = Vector(dx, dy, dz):normalized()
 
   -- take into account the camera direction (forward, right)
-  dir = self.right * dir.x + self.up * dir.y + self.forward * dir.z
+  dir = self.right * dir.x + Vector(0,1,0) * dir.y + self.forward * dir.z
 
   self.position = self.position + dir * 0.1
 
