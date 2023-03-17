@@ -10,12 +10,12 @@ local cos, sin = math.cos, math.sin
 local w, h = 400, 300
 
 function Camera:new()
-  self.position = Vector(0, 0, 0)
+  self.position = Vector(0, 0, 5)
 
   self.view = Matrix()
   self.projection = Matrix()
 
-  self.yaw = math.pi / 2
+  self.yaw = math.pi/2
   self.pitch = 0
 
   self.right   = Vector(1, 0, 0)
@@ -25,21 +25,34 @@ function Camera:new()
   self.near = 0.1
   self.far = 1000
   self.fov = 90
-  self.aspect = h / w
+  self.aspect = w / h
 
   self._fov = 1 / math.tan(self.fov / 2 * math.pi / 180)
 
+  self:updateDirection(0,0)
   self:updateProjection()
   self:updateView()
 end
 
 function Camera:updateProjection()
-  local q = self.far / (self.far - self.near)
-  self.projection[1] = self._fov * self.aspect
-  self.projection[6] = self._fov
-  self.projection[11] = q
-  self.projection[12] = -1
-  self.projection[15] = q * -self.near
+  local top = self.near * self._fov
+  local right = top * self.aspect
+  local bottom = -top
+  local left = -right
+
+  local x = 2 * self.near / (right - left)
+  local y = 2 * self.near / (top - bottom)
+  local a = (right + left) / (right - left)
+  local b = (top + bottom) / (top - bottom)
+  local c = -(self.far + self.near) / (self.far - self.near)
+  local d = -2 * self.far * self.near / (self.far - self.near)
+
+  self.projection:set({
+    x, 0, a, 0,
+    0, y, b, 0,
+    0, 0, c, d,
+    0, 0, -1, 0
+  })
 end
 
 function Camera:updateView()
@@ -79,8 +92,8 @@ end
 function Camera:update()
   local dx,dy,dz = 0,0,0
 
-  if love.keyboard.isDown "w" then dz = 1
-  elseif love.keyboard.isDown "s" then dz = -1
+  if love.keyboard.isDown "w" then dz = -1
+  elseif love.keyboard.isDown "s" then dz = 1
   end
   if love.keyboard.isDown "a" then dx = 1
   elseif love.keyboard.isDown "d" then dx = -1
