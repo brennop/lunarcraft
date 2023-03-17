@@ -41,6 +41,14 @@ function World:getBlock(x, y, z)
   return nil
 end
 
+function World:setBlock(x, y, z, block)
+  local chunk = self:getChunk(x, z)
+
+  if chunk then
+    chunk:setBlock(x, y, z, block)
+  end
+end
+
 function World:draw()
   for i, v in pairs(self.chunks) do
     for j, chunk in pairs(v) do

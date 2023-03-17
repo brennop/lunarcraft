@@ -7,8 +7,9 @@ local cos, sin = math.cos, math.sin
 
 local w, h = 400, 300
 
-function Camera:new()
-  self.position = Vector(0, 18, 0)
+function Camera:new(world)
+  self.position = Vector(0, CHUNK_HEIGHT + 2, 0)
+  self.world = world
 
   self.view = Matrix()
   self.projection = Matrix()
@@ -108,7 +109,37 @@ function Camera:update()
   self.position = self.position + dir * 0.1
 
   self:updateView()
+
+  local block, x, y, z = self:getHit()
+
+  debug("block", block, x, y, z)
+  if block > 0 and love.mouse.isDown(1) then
+    self.world:setBlock(x, y, z, 0)
+  end
+end
+
+function Camera:draw()
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.circle("fill", w, h, 2)
+end
+
+local DOF = 16
+function Camera:getHit()
+  local x, y, z = self.position:unpack()
+  local dx, dy, dz = (-self.forward):unpack()
+
+  for dof = 1, DOF do
+    local fx, fy, fz = math.ceil(x-0.5), math.ceil(y-0.5), math.ceil(z-0.5)
+    local block = self.world:getBlock(fx, fy, fz)
+
+    if block > 0 then
+      return block, fx, fy, fz
+    end
+
+    x, y, z = x + dx, y + dy, z + dz
+  end
+
+  return 0, 0, 0, 0
 end
 
 return Camera
-

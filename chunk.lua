@@ -1,12 +1,13 @@
-
 local Chunk = Object:extend()
 
-local blockTypes = require "block"
+local blockTypes = require "blocks"
 local Vector = require "vector"
 
 local format = {
   { "VertexPosition", "float", 3 },
   { "VertexTexCoord", "float", 2 },
+  { "VertexNormal", "float", 3 },
+  { "VertexColor", "byte", 4 },
 }
 
 function Chunk:new(x, y, z, world)
@@ -15,28 +16,31 @@ function Chunk:new(x, y, z, world)
 
   self.blocks = {}
 
-  local _overworld = { 0, 2 }
-  local _terrain = { 0, 3 }
-  local _caves = { 0, 0, 1 }
-  
+  local _dirt  = { 0, 0, 3 }
+  local _caves = { 0, 0, 0, 1 }
 
   for i = 1, CHUNK_SIZE do
     self.blocks[i] = {}
     for j = 1, CHUNK_HEIGHT do
       self.blocks[i][j] = {}
       for k = 1, CHUNK_SIZE do
-        if j == 16 then
-          self.blocks[i][j][k] = _overworld[math.random(1, #_overworld)]
-        elseif j > 13 then
-          self.blocks[i][j][k] = _terrain[math.random(1, #_terrain)]
+        local h = CHUNK_HEIGHT - math.floor(love.math.noise(i/8, k/8, 0) * 8)
+        if j == h then
+          self.blocks[i][j][k] = 2
+        elseif j < h and j > 16 then
+          self.blocks[i][j][k] = _dirt[love.math.random(1, #_dirt)]
+        elseif j < h and j <= 16 then
+          self.blocks[i][j][k] = _caves[love.math.random(1, #_caves)]
         else
-          self.blocks[i][j][k] = _caves[math.random(1, #_caves)]
+          self.blocks[i][j][k] = 0
         end
       end
     end
   end
 
-  self.mesh = nil
+  maxVertices = CHUNK_SIZE * CHUNK_HEIGHT * CHUNK_SIZE * 6 * 6
+  self.mesh = love.graphics.newMesh(format, maxVertices, "triangles")
+  self.mesh:setTexture(tileset)
 end
 
 function Chunk:updateMesh()
@@ -45,10 +49,12 @@ function Chunk:updateMesh()
   local function addFace(index, mesh, x, y, z)
     for i = 1, 6 do
       local vertex = mesh[index*6+i]
-      local vx, vy, vz, u, v = unpack(vertex)
+      local vx, vy, vz, u, v, s = unpack(vertex)
       table.insert(vertices, {
         vx + x, vy + y, vz + z,
-        u, v
+        u, v,
+        0, 0, 0,
+        s, s, s, 255
       })
     end
   end
@@ -73,8 +79,7 @@ function Chunk:updateMesh()
     end
   end
 
-  self.mesh = love.graphics.newMesh(format, vertices, "triangles")
-  self.mesh:setTexture(tileset)
+  self.mesh:setVertices(vertices)
 end
 
 function Chunk:getBlock(x, y, z)
@@ -88,8 +93,24 @@ function Chunk:getBlock(x, y, z)
   return self.blocks[x][y][z]
 end
 
+function Chunk:setBlock(x, y, z, block)
+  if y < 1 or y > CHUNK_HEIGHT then return end
+
+  -- translate to local coordinates
+  x = x - self.position.x
+  y = y - self.position.y
+  z = z - self.position.z
+
+  if self.blocks[x][y][z] == block then return end
+
+  self.blocks[x][y][z] = block
+  self:updateMesh()
+end
+
 function Chunk:draw()
-  love.graphics.draw(self.mesh)
+  if self.mesh then
+    love.graphics.draw(self.mesh)
+  end
 end
 
 return Chunk

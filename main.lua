@@ -1,7 +1,7 @@
 Object = require "lib.classic"
 
 CHUNK_SIZE = 16
-CHUNK_HEIGHT = 16
+CHUNK_HEIGHT = 32
 
 local Matrix = require "matrix"
 local Camera = require "camera"
@@ -44,11 +44,13 @@ function love.load()
 
   tileset = love.graphics.newImage("tileset.png")
 
+  love.graphics.setBackgroundColor(0.65, 0.6, 0.95)
+
   local World = require "world"
 
   world = World()
 
-  camera = Camera()
+  camera = Camera(world)
 end
 
 function love.update(dt)
@@ -65,6 +67,8 @@ function love.draw()
   world:draw()
 
   love.graphics.setShader()
+
+  camera:draw()
 
   debug("FPS:", love.timer.getFPS())
 
