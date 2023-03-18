@@ -25,7 +25,9 @@ function Chunk:new(x, y, z, world)
     for j = 1, CHUNK_HEIGHT do
       self.blocks[i][j] = {}
       for k = 1, CHUNK_SIZE do
-        local h = CHUNK_HEIGHT - math.floor(love.math.noise(i/8, k/8, 0) * 8)
+        local x, y, z = self.position.x + i, self.position.y + j, self.position.z + k
+        local h = CHUNK_HEIGHT - math.floor(love.math.noise(x/10, z/10, 0) * 8)
+
         if j == h then
           self.blocks[i][j][k] = 2
         elseif j < h and j > 16 then

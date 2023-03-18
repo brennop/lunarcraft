@@ -39,18 +39,7 @@ function Camera:new(world)
 
   self._fov = 1 / math.tan(self.fov / 2 * math.pi / 180)
 
-  self.mesh = love.graphics.newMesh({
-    { "VertexPosition", "float", 3 },
-    { "VertexTexCoord", "float", 2 },
-  }, {
-    { -0.5,  0.5, 0.51, 0, 0 },
-    { -0.5, -0.5, 0.51, 1, 1 },
-    {  0.5, -0.5, 0.51, 0, 1 },
-    {  0.5,  0.5, 0.51, 1, 0 },
-  }, "fan")
-
-  self.model = Matrix()
-  self.model[8] = self.position.y
+  self.drawDistance = 4
 
   self.shader = love.graphics.newShader(vert)
 
@@ -124,7 +113,20 @@ function Camera:draw()
   self.shader:send("viewMatrix", self.view)
   self.shader:send("projectionMatrix", self.projection)
 
-  self.world:draw()
+  -- self.world:draw()
+  for x = -self.drawDistance*CHUNK_SIZE, self.drawDistance*CHUNK_SIZE, CHUNK_SIZE do
+    for z = -self.drawDistance*CHUNK_SIZE, self.drawDistance*CHUNK_SIZE, CHUNK_SIZE do
+      -- offset by position
+      local px, py = x + self.position.x, z + self.position.z
+
+      local chunk = self.world:getChunk(px, py)
+      if chunk then 
+        chunk:draw() 
+      else
+        self.world:generateChunk(px, py)
+      end
+    end
+  end
 
   love.graphics.setShader()
 end

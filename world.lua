@@ -19,6 +19,17 @@ function World:new()
   end
 end
 
+function World:generateChunk(wx, wz)
+  local x = math.floor((wx-1) / CHUNK_SIZE)
+  local z = math.floor((wz-1) / CHUNK_SIZE)
+
+  local chunk = Chunk(x, 0, z, self)
+  chunk:updateMesh()
+
+  if self.chunks[x] == nil then self.chunks[x] = {} end
+  self.chunks[x][z] = chunk
+end
+
 function World:getChunk(x, z)
   -- convert to chunk coordinates
   local nx = math.floor((x-1) / CHUNK_SIZE)
@@ -47,6 +58,9 @@ function World:setBlock(x, y, z, block)
   if chunk then
     chunk:setBlock(x, y, z, block)
   end
+end
+
+function World:update(dt)
 end
 
 function World:draw()
