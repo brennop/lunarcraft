@@ -20,6 +20,10 @@ function love.mousemoved(x, y, dx, dy)
   player:updateDirection(dx, dy)
 end
 
+function love.mousepressed(x, y, button)
+  player:handlePress(x, y, button)
+end
+
 function love.load()
   love.graphics.setDepthMode("lequal", true)
   love.graphics.setMeshCullMode("back")
@@ -41,6 +45,7 @@ end
 function love.update(dt)
   _debug = {}
   player:update(dt)
+  world:update(dt)
 end
 
 function love.draw()

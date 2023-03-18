@@ -136,7 +136,7 @@ function Camera:hit()
   local block = (self.position + Vector(.5,.5,.5)):floored()
   local distance = 0
 
-  for i = 1, 10 do
+  while distance < 4 do
     local localPos = position - block
     local absolute = (-self.forward):clone()
     local sign = Vector(1, 1, 1)

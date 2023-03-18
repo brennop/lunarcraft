@@ -17,23 +17,24 @@ function Chunk:new(x, y, z, world)
 
   self.blocks = {}
 
-  local _dirt  = { 0, 0, 3 }
-  local _caves = { 0, 0, 0, 1 }
-
   for i = 1, CHUNK_SIZE do
     self.blocks[i] = {}
     for j = 1, CHUNK_HEIGHT do
       self.blocks[i][j] = {}
       for k = 1, CHUNK_SIZE do
         local x, y, z = self.position.x + i, self.position.y + j, self.position.z + k
+
         local h = CHUNK_HEIGHT - math.floor(love.math.noise(x/10, z/10, 0) * 8)
+        local c = math.floor(love.math.noise(x/8, y/4, z/8, 1)*2)
 
         if j == h then
           self.blocks[i][j][k] = 2
+        elseif j <= 4 then
+          self.blocks[i][j][k] = 1
         elseif j < h and j > 16 then
-          self.blocks[i][j][k] = _dirt[love.math.random(1, #_dirt)]
+          self.blocks[i][j][k] = c * 3
         elseif j < h and j <= 16 then
-          self.blocks[i][j][k] = _caves[love.math.random(1, #_caves)]
+          self.blocks[i][j][k] = c
         else
           self.blocks[i][j][k] = 0
         end
@@ -98,6 +99,17 @@ function Chunk:getBlock(x, y, z)
   return self.blocks[x][y][z]
 end
 
+function Chunk:clear()
+  for i = 1, CHUNK_SIZE do
+    for j = 1, CHUNK_HEIGHT do
+      for k = 1, CHUNK_SIZE do
+        self.blocks[i][j][k] = 0
+      end
+    end
+  end
+  self:updateMesh()
+end
+
 function Chunk:setBlock(x, y, z, block)
   if y < 1 or y > CHUNK_HEIGHT then return end
 
@@ -110,6 +122,18 @@ function Chunk:setBlock(x, y, z, block)
 
   self.blocks[x][y][z] = block
   self:updateMesh()
+
+  if x == 1 then 
+    self.world:getChunk(x - 8, z):updateMesh()
+  elseif x == CHUNK_SIZE then 
+    self.world:getChunk(x, z):updateMesh()
+  end
+
+  if z == 1 then
+    self.world:getChunk(x - 8, z - 8):updateMesh()
+  elseif z == CHUNK_SIZE then
+    self.world:getChunk(x - 8, z):updateMesh()
+  end
 end
 
 function Chunk:draw()

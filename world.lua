@@ -17,9 +17,16 @@ function World:new()
       self.chunks[i][j]:updateMesh()
     end
   end
+
+  self._generated = false
 end
 
 function World:generateChunk(wx, wz)
+  if self._generated then return end
+
+  -- only allow one chunk to be generated at a time
+  self._generated = true
+
   local x = math.floor((wx-1) / CHUNK_SIZE)
   local z = math.floor((wz-1) / CHUNK_SIZE)
 
@@ -61,6 +68,7 @@ function World:setBlock(x, y, z, block)
 end
 
 function World:update(dt)
+  self._generated = false
 end
 
 function World:draw()

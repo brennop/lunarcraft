@@ -43,9 +43,15 @@ function Player:update(dt)
 
   self.camera.position = self.position + Vector(0, self.height, 0)
   self.camera:update(dt)
+
+  self.nextBlock, self.block = self.camera:hit()
 end
 
 function Player:draw()
+  debug("block", self.block)
+  if self.block then
+    debug("z", self.block.z, self.block.z % 8)
+  end
   self.camera:draw()
 end
 
@@ -64,6 +70,20 @@ function Player:handleInput(dt)
   local d = Vector(dx, 0, dz):rotated(self.yaw)
   self.accel.x = d.x * self.speed * dt
   self.accel.z = d.z * self.speed * dt
+end
+
+function Player:handlePress(_, _, button)
+  if button == 1 then
+    if self.block then
+      local x, y, z = self.block:unpack()
+      self.world:setBlock(x, y, z, 0)
+    end
+  elseif button == 2 then
+    if self.nextBlock then
+      local x, y, z = self.nextBlock:unpack()
+      self.world:setBlock(x, y, z, 1)
+    end
+  end
 end
 
 function Player:updateDirection(dx, dy)
