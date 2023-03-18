@@ -64,7 +64,21 @@ function World:setBlock(x, y, z, block)
 
   if chunk then
     chunk:setBlock(x, y, z, block)
-    chunk:updateMesh()
+  end
+end
+
+function World:updateBlockMesh(x, y, z)
+  local chunk = self:getChunk(x, z)
+
+  if chunk then
+    chunk:updateBlockMesh(x, y, z)
+    chunk:updateBlockMesh(x, y + 1, z)
+    chunk:updateBlockMesh(x, y - 1, z)
+
+    self:getChunk(x + 1, z):updateBlockMesh(x + 1, y, z)
+    self:getChunk(x - 1, z):updateBlockMesh(x - 1, y, z)
+    self:getChunk(x, z + 1):updateBlockMesh(x, y, z + 1)
+    self:getChunk(x,  z - 1):updateBlockMesh(x, y, z - 1)
   end
 end
 
