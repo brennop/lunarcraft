@@ -83,4 +83,10 @@ function Vector:floored()
   return Vector(math.floor(self.x), math.floor(self.y), math.floor(self.z))
 end
 
+function Vector:rotated(angle)
+  local c = math.cos(angle)
+  local s = math.sin(angle)
+  return Vector(self.x * c + self.z * s, self.y, self.x * s - self.z * c)
+end
+
 return Vector

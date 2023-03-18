@@ -111,7 +111,7 @@ function Chunk:setBlock(x, y, z, block)
 end
 
 function Chunk:draw()
-  shader:send("modelMatrix", self.model)
+  love.graphics.getShader():send("modelMatrix", self.model)
   love.graphics.draw(self.mesh)
 end
 

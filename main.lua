@@ -4,9 +4,7 @@ CHUNK_SIZE = 16
 CHUNK_HEIGHT = 32
 
 local Matrix = require "matrix"
-local Camera = require "camera"
-
-local camera
+local Player = require "player"
 
 _debug = {}
 function debug(...)
@@ -18,29 +16,16 @@ function debug(...)
   table.insert(_debug, str)
 end
 
-local vert = [[
-uniform mat4 projectionMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 modelMatrix;
-
-vec4 position( mat4 transform_projection, vec4 vertexPosition )
-{
-    return projectionMatrix * viewMatrix * modelMatrix * vertexPosition;
-}
-]]
-
 function love.mousemoved(x, y, dx, dy)
-  camera:updateDirection(dx, dy)
+  player:updateDirection(dx, dy)
 end
 
 function love.load()
   love.graphics.setDepthMode("lequal", true)
-  -- love.graphics.setMeshCullMode("back")
+  love.graphics.setMeshCullMode("back")
 
   love.mouse.setRelativeMode(true)
   love.graphics.setDefaultFilter("nearest", "nearest")
-
-  shader = love.graphics.newShader(vert)
 
   tileset = love.graphics.newImage("tileset.png")
 
@@ -50,24 +35,16 @@ function love.load()
 
   world = World()
 
-  camera = Camera(world)
+  player = Player(world)
 end
 
 function love.update(dt)
   _debug = {}
-  camera:update(dt)
+  player:update(dt)
 end
 
 function love.draw()
-  love.graphics.setShader(shader)
-
-  shader:send("viewMatrix", camera.view)
-  shader:send("projectionMatrix", camera.projection)
-
-  world:draw()
-  camera:draw()
-
-  love.graphics.setShader()
+  player:draw()
 
   local w, h = love.graphics.getDimensions()
   love.graphics.circle("fill", w / 2, h / 2, 2)

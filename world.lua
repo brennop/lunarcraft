@@ -5,15 +5,15 @@ local Chunk = require "chunk"
 function World:new()
   self.chunks = {}
 
-  for i = 0, 2 do
+  for i = -2, 2 do
     self.chunks[i] = {}
-    for j = 0, 2 do
+    for j = -2, 2 do
       self.chunks[i][j] = Chunk(i, 0, j, self)
     end
   end
 
-  for i = 0, 2 do
-    for j = 0, 2 do
+  for i = -2, 2 do
+    for j = -2, 2 do
       self.chunks[i][j]:updateMesh()
     end
   end
