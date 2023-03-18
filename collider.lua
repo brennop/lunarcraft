@@ -28,61 +28,34 @@ local function t(x, y)
 end
 
 function Collider:collide(other, velocity)
-  local nx, ny, nz
+  local vx, vy, vz = velocity:unpack()
 
-  local ax = t(other.pos1.x - self.pos2.x, velocity.x)
-  local bx = t(other.pos2.x - self.pos1.x, velocity.x)
+  local x_entry = t(vx > 0 and other.pos1.x - self.pos2.x or other.pos2.x - self.pos1.x, vx)
+  local y_entry = t(vy > 0 and other.pos1.y - self.pos2.y or other.pos2.y - self.pos1.y, vy)
+  local z_entry = t(vz > 0 and other.pos1.z - self.pos2.z or other.pos2.z - self.pos1.z, vz)
 
-  if velocity.x > 0 then
-    nx = 1
-  else
-    ax, bx = bx, ax
-    nx = -1
-  end
+  local x_exit = t(vx > 0 and other.pos2.x - self.pos1.x or other.pos1.x - self.pos2.x, vx)
+  local y_exit = t(vy > 0 and other.pos2.y - self.pos1.y or other.pos1.y - self.pos2.y, vy)
+  local z_exit = t(vz > 0 and other.pos2.z - self.pos1.z or other.pos1.z - self.pos2.z, vz)
 
-  local ay = t(other.pos1.y - self.pos2.y, velocity.y)
-  local by = t(other.pos2.y - self.pos1.y, velocity.y)
+  local entry = max(max(x_entry, y_entry), z_entry)
+  local exit = min(min(x_exit, y_exit), z_exit)
 
-  if velocity.y > 0 then
-    ny = 1
-  else
-    ay, by = by, ay
-    ny = -1
-  end
-
-  local az = t(other.pos1.z - self.pos2.z, velocity.z)
-  local bz = t(other.pos2.z - self.pos1.z, velocity.z)
-
-  if velocity.z > 0 then
-    nz = 1
-  else
-    az, bz = bz, az
-    nz = -1
-  end
-
-  if ax < 0 and ay < 0 and az < 0 then
+  if entry > exit or x_entry < 0 and y_entry < 0 and z_entry < 0 or x_entry > 1 or y_entry > 1 or z_entry > 1 then
     return nil
   end
 
-  if ax > 1 or ay > 1 or az > 1 then
-    return nil
-  end
+  local normal = Vector(0, 0, 0)
 
-  entry = max(ax, ay, az)
-  exit = min(bx, by, bz)
-
-  if entry > exit then
-    return nil
-  end
-
-  -- TODO: improve this
-  if entry == ax then
-    return entry, Vector(nx, 0, 0)
-  elseif entry == ay then
-    return entry, Vector(0, ny, 0)
+  if x_entry > y_entry and x_entry > z_entry then
+    normal.x = vx > 0 and -1 or 1
+  elseif y_entry > z_entry then
+    normal.y = vy > 0 and -1 or 1
   else
-    return entry, Vector(0, 0, nz)
+    normal.z = vz > 0 and -1 or 1
   end
+
+  return entry, normal
 end
 
 return Collider
