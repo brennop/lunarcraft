@@ -19,12 +19,13 @@ function Chunk:new(x, y, z, world)
 
   for i = 1, CHUNK_SIZE do
     self.blocks[i] = {}
+
     for j = 1, CHUNK_HEIGHT do
       self.blocks[i][j] = {}
       for k = 1, CHUNK_SIZE do
         local x, y, z = self.position.x + i, self.position.y + j, self.position.z + k
 
-        local h = CHUNK_HEIGHT - math.floor(love.math.noise(x/10, z/10, 0) * 8)
+        local h = CHUNK_HEIGHT - math.floor(love.math.noise(x/10, z/10, 0) * 10)
         local c = math.floor(love.math.noise(x/8, y/4, z/8, 1)*2)
 
         if j == h then
@@ -37,6 +38,11 @@ function Chunk:new(x, y, z, world)
           self.blocks[i][j][k] = c
         else
           self.blocks[i][j][k] = 0
+        end
+
+        if self.blocks[i][j][k] ~= 0 then
+          if self.world.heightMap[x] == nil then self.world.heightMap[x] = {} end
+          self.world.heightMap[x][z] = j
         end
       end
     end
@@ -59,7 +65,23 @@ function Chunk:setFace(index, mesh, x, y, z, value)
 
     if value == 0 and mesh then
       local vertex = mesh[index*6+i]
-      local vx, vy, vz, u, v, s = unpack(vertex)
+      local vx, vy, vz, u, v, normal = unpack(vertex)
+      local s
+
+      if normal[1] == 1 or normal[3] == 1 then
+        s = 0.8
+      elseif normal[1] == -1 or normal[3] == -1 then
+        s = 0.5
+      else
+        s = normal[2] == 1 and 1 or 0.4
+      end
+
+      local h = (self.world.heightMap[x+cx+normal[1]] or {})[z+cz+normal[3]]
+
+      if h and h > y then
+        s = s * 0.5
+      end
+
       vertexData = {
         vx + x + cx, vy + y + cy, vz + z + cz,
         u, v,
@@ -135,6 +157,20 @@ function Chunk:setBlock(x, y, z, block)
   if self.blocks[i][j][k] == block then return end
 
   self.blocks[i][j][k] = block
+
+  local prevHeight = self.world.heightMap[x][z]
+
+  -- update height buffer
+  for h = 1, CHUNK_HEIGHT do
+    if self.blocks[i][h][k] > 0 then
+      self.world.heightMap[x][z] = h
+    end
+  end
+
+  local newHeight = self.world.heightMap[x][z]
+
+  self:updateBlockMesh(x, prevHeight, z)
+  self:updateBlockMesh(x, newHeight, z)
   self.world:updateBlockMesh(x, y, z)
 end
 

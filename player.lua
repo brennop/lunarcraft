@@ -52,7 +52,8 @@ end
 function Player:draw()
   self.camera:draw()
 
-  debug(self.currentBlock)
+  local x, y, z = (self.position+Vector(0.5, 0.5, 0.5)):floored():unpack()
+  debug(x, y, z, self.world.heightMap[x][z])
 end
 
 function Player:handleInput(dt)

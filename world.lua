@@ -5,6 +5,8 @@ local Chunk = require "chunk"
 function World:new()
   self.chunks = {}
 
+  self.heightMap = {}
+
   for i = -2, 2 do
     self.chunks[i] = {}
     for j = -2, 2 do
