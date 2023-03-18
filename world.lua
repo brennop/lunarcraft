@@ -64,6 +64,7 @@ function World:setBlock(x, y, z, block)
 
   if chunk then
     chunk:setBlock(x, y, z, block)
+    chunk:updateMesh()
   end
 end
 

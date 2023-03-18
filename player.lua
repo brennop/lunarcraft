@@ -25,6 +25,8 @@ function Player:new(world)
   self.ground = false
 
   self.camera = Camera(world)
+
+  self.block = 1
 end
 
 
@@ -44,15 +46,13 @@ function Player:update(dt)
   self.camera.position = self.position + Vector(0, self.height, 0)
   self.camera:update(dt)
 
-  self.nextBlock, self.block = self.camera:hit()
+  self.nextBlock, self.currentBlock = self.camera:hit()
 end
 
 function Player:draw()
-  debug("block", self.block)
-  if self.block then
-    debug("z", self.block.z, self.block.z % 8)
-  end
   self.camera:draw()
+
+  debug(self.currentBlock)
 end
 
 function Player:handleInput(dt)
@@ -74,14 +74,19 @@ end
 
 function Player:handlePress(_, _, button)
   if button == 1 then
-    if self.block then
-      local x, y, z = self.block:unpack()
+    if self.currentBlock then
+      local x, y, z = self.currentBlock:unpack()
       self.world:setBlock(x, y, z, 0)
     end
   elseif button == 2 then
     if self.nextBlock then
       local x, y, z = self.nextBlock:unpack()
-      self.world:setBlock(x, y, z, 1)
+      self.world:setBlock(x, y, z, self.block)
+    end
+  elseif button == 3 then
+    if self.currentBlock then
+      local x, y, z = self.currentBlock:unpack()
+      self.block = self.world:getBlock(x, y, z)
     end
   end
 end

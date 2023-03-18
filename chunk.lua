@@ -85,7 +85,10 @@ function Chunk:updateMesh()
     end
   end
 
-  self.mesh:setVertices(vertices)
+  -- self.mesh:setVertices(vertices)
+  self.mesh:release()
+  self.mesh = love.graphics.newMesh(format, vertices, "triangles")
+  self.mesh:setTexture(tileset)
 end
 
 function Chunk:getBlock(x, y, z)
@@ -119,6 +122,10 @@ function Chunk:setBlock(x, y, z, block)
   z = z - self.position.z
 
   if self.blocks[x][y][z] == block then return end
+
+  if block == 0 then
+    print("destroyed block at", x, y, z)
+  end
 
   self.blocks[x][y][z] = block
   self:updateMesh()
