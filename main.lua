@@ -1,6 +1,6 @@
 Object = require "lib.classic"
 
-CHUNK_SIZE = 16
+CHUNK_SIZE = 8
 CHUNK_HEIGHT = 32
 
 local Matrix = require "matrix"
