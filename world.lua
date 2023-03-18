@@ -12,12 +12,6 @@ function World:new()
     end
   end
 
-  for i = -2, 2 do
-    for j = -2, 2 do
-      self.chunks[i][j]:updateMesh()
-    end
-  end
-
   self._generated = false
 end
 
@@ -31,7 +25,6 @@ function World:generateChunk(wx, wz)
   local z = math.floor((wz-1) / CHUNK_SIZE)
 
   local chunk = Chunk(x, 0, z, self)
-  chunk:updateMesh()
 
   if self.chunks[x] == nil then self.chunks[x] = {} end
   self.chunks[x][z] = chunk
@@ -84,6 +77,12 @@ end
 
 function World:update(dt)
   self._generated = false
+
+  for i, v in pairs(self.chunks) do
+    for j, chunk in pairs(v) do
+      chunk:update(dt)
+    end
+  end
 end
 
 function World:draw()

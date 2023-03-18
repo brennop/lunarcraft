@@ -47,6 +47,9 @@ function Chunk:new(x, y, z, world)
   self.mesh:setTexture(tileset)
 
   self.model = Matrix()
+
+  self.start = 1
+  self.step = 2
 end
 
 function Chunk:setFace(index, mesh, x, y, z, value)
@@ -70,26 +73,27 @@ function Chunk:setFace(index, mesh, x, y, z, value)
   end
 end
 
-function Chunk:updateMesh()
+function Chunk:updateMesh(start, stop)
   local vertices = {}
   local v = 1
 
   local cx, cy, cz = self.position:unpack()
 
-  for i = 1, CHUNK_SIZE do
-    for j = 1, CHUNK_HEIGHT do
-      for k = 1, CHUNK_SIZE do
-        local block = self.blocks[i][j][k]
-        local mesh = blockTypes[block]
-        local x, y, z = i + cx, j + cy, k + cz
+  for f = start, stop do
+    local i = math.floor((f-1) / CHUNK_SIZE) + 1
+    local k = (f-1) % CHUNK_SIZE + 1
 
-        self:setFace(0, mesh, i, j, k, self.world:getBlock(x, y, z + 1))
-        self:setFace(1, mesh, i, j, k, self.world:getBlock(x, y + 1, z))
-        self:setFace(2, mesh, i, j, k, self.world:getBlock(x, y, z - 1))
-        self:setFace(3, mesh, i, j, k, self.world:getBlock(x, y - 1, z))
-        self:setFace(4, mesh, i, j, k, self.world:getBlock(x + 1, y, z))
-        self:setFace(5, mesh, i, j, k, self.world:getBlock(x - 1, y, z))
-      end
+    for j = 1, CHUNK_HEIGHT do
+      local block = self.blocks[i][j][k]
+      local mesh = blockTypes[block]
+      local x, y, z = i + cx, j + cy, k + cz
+
+      self:setFace(0, mesh, i, j, k, self.world:getBlock(x, y, z + 1))
+      self:setFace(1, mesh, i, j, k, self.world:getBlock(x, y + 1, z))
+      self:setFace(2, mesh, i, j, k, self.world:getBlock(x, y, z - 1))
+      self:setFace(3, mesh, i, j, k, self.world:getBlock(x, y - 1, z))
+      self:setFace(4, mesh, i, j, k, self.world:getBlock(x + 1, y, z))
+      self:setFace(5, mesh, i, j, k, self.world:getBlock(x - 1, y, z))
     end
   end
 
@@ -132,19 +136,13 @@ function Chunk:setBlock(x, y, z, block)
 
   self.blocks[i][j][k] = block
   self.world:updateBlockMesh(x, y, z)
-  -- self:updateMesh()
+end
 
-  -- if x == 1 then 
-  --   self.world:getChunk(x - 8, z):updateMesh()
-  -- elseif x == CHUNK_SIZE then 
-  --   self.world:getChunk(x, z):updateMesh()
-  -- end
-
-  -- if z == 1 then
-  --   self.world:getChunk(x - 8, z - 8):updateMesh()
-  -- elseif z == CHUNK_SIZE then
-  --   self.world:getChunk(x - 8, z):updateMesh()
-  -- end
+function Chunk:update()
+  if self.start + self.step - 1 <= CHUNK_SIZE * CHUNK_SIZE then
+    self:updateMesh(self.start, self.start + self.step - 1)
+    self.start = self.start + self.step
+  end
 end
 
 function Chunk:draw()
