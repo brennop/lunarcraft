@@ -11,11 +11,15 @@ local format = {
   { "VertexColor", "byte", 4 },
 }
 
+local maxVertices = CHUNK_SIZE * CHUNK_HEIGHT * CHUNK_SIZE * 6 * 6
+
 function Chunk:new(x, y, z, world)
   self.position = Vector(x * CHUNK_SIZE, y * CHUNK_HEIGHT, z * CHUNK_SIZE)
   self.world = world
 
   self.blocks = {}
+
+  self.loaded = false
 
   for i = 1, CHUNK_SIZE do
     self.blocks[i] = {}
@@ -42,14 +46,13 @@ function Chunk:new(x, y, z, world)
     end
   end
 
-  maxVertices = CHUNK_SIZE * CHUNK_HEIGHT * CHUNK_SIZE * 6 * 6
   self.mesh = love.graphics.newMesh(format, maxVertices, "triangles")
   self.mesh:setTexture(tileset)
 
   self.model = Matrix()
 
   self.start = 1
-  self.step = 2
+  self.step = 4
 end
 
 function Chunk:setFace(index, mesh, x, y, z, value)
@@ -101,6 +104,8 @@ function Chunk:updateMesh(start, stop)
 end
 
 function Chunk:updateBlockMesh(x, y, z)
+  if y < 1 or y > CHUNK_HEIGHT then return end
+
   -- translate to local coordinates
   local i, j, k = x - self.position.x, y - self.position.y, z - self.position.z
 

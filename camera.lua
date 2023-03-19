@@ -122,8 +122,6 @@ function Camera:draw()
       local chunk = self.world:getChunk(px, py)
       if chunk then 
         chunk:draw() 
-      else
-        self.world:generateChunk(px, py)
       end
     end
   end

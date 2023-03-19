@@ -24,6 +24,12 @@ function love.mousepressed(x, y, button)
   player:handlePress(x, y, button)
 end
 
+function love.keypressed(key)
+  if key == "escape" then love.event.quit() end
+  if key == "f3" then love.window.setFullscreen(not love.window.getFullscreen()) end
+  if key == "k" then world:save() end
+end
+
 function love.load()
   love.graphics.setDepthMode("lequal", true)
   love.graphics.setMeshCullMode("back")
@@ -32,6 +38,8 @@ function love.load()
   love.graphics.setDefaultFilter("nearest", "nearest")
 
   tileset = love.graphics.newImage("tileset.png")
+
+  love.filesystem.setIdentity("lunarcraft")
 
   love.graphics.setBackgroundColor(0.65, 0.6, 0.95)
 

@@ -26,6 +26,8 @@ function Player:new(world)
 
   self.camera = Camera(world)
 
+  self.loadRadius = 4
+
   self.block = 1
 end
 
@@ -47,6 +49,12 @@ function Player:update(dt)
   self.camera:update(dt)
 
   self.nextBlock, self.currentBlock = self.camera:hit()
+
+  for x = -self.loadRadius, self.loadRadius do
+    for z = -self.loadRadius, self.loadRadius do
+      self.world:loadChunk(self.position.x + x * CHUNK_SIZE, self.position.z + z * CHUNK_SIZE)
+    end
+  end
 end
 
 function Player:draw()
