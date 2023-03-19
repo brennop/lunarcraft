@@ -101,6 +101,10 @@ function World:loadChunk(x, z)
 
   if chunk then
     chunk.loaded = true
+
+    if not chunk.done and not chunk.thread:isRunning() then
+      chunk:load()
+    end
   else
     self:generateChunk(x, z)
   end
@@ -115,6 +119,7 @@ function World:update(dt)
         chunk:update(dt)
       end
 
+      done = false
       chunk.loaded = false
     end
   end

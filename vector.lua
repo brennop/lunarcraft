@@ -89,4 +89,8 @@ function Vector:rotated(angle)
   return Vector(self.x * c + self.z * s, self.y, self.x * s - self.z * c)
 end
 
+function Vector:table()
+  return {self.x, self.y, self.z}
+end
+
 return Vector

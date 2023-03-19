@@ -51,8 +51,16 @@ function Chunk:new(x, y, z, world)
 
   self.model = Matrix()
 
+  self.channel = "chunk"..x..y..z
+  self.thread = love.thread.newThread("mesh.lua")
+
   self.start = 1
   self.step = 4
+end
+
+function Chunk:load()
+  self.done = true
+  self.thread:start(self.position:table(), self.blocks, self.channel, blockTypes)
 end
 
 function Chunk:setFace(index, mesh, x, y, z, value)
@@ -144,9 +152,11 @@ function Chunk:setBlock(x, y, z, block)
 end
 
 function Chunk:update()
-  if self.start + self.step - 1 <= CHUNK_SIZE * CHUNK_SIZE then
-    self:updateMesh(self.start, self.start + self.step - 1)
-    self.start = self.start + self.step
+  local message = love.thread.getChannel(self.channel):pop()
+
+  if message then
+    local vertices, start, count = unpack(message)
+    self.mesh:setVertices(vertices, start, count)
   end
 end
 
