@@ -70,12 +70,12 @@ function Chunk:setFace(index, mesh, x, y, z, value)
 
     if value == 0 and mesh then
       local vertex = mesh[index*6+i]
-      local vx, vy, vz, u, v, s = unpack(vertex)
+      local vx, vy, vz, u, v, normal = unpack(vertex)
       vertexData = {
         vx + x + cx, vy + y + cy, vz + z + cz,
         u, v,
         0, 0, 0,
-        s, s, s, 255
+        1, 1, 1, 1
       }
     end
 
