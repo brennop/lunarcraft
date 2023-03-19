@@ -45,7 +45,7 @@ function love.load()
 
   local World = require "world"
 
-  world = World()
+  world = World:new()
 
   player = Player(world)
 end

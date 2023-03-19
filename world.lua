@@ -1,7 +1,7 @@
 local bitser = require "lib.bitser"
 local Chunk = require "chunk"
 
-local World = Object:extend()
+local World = {}
 
 function World:new()
   self.chunks = {}
@@ -9,6 +9,8 @@ function World:new()
   self:load()
 
   self._generated = false
+
+  return self
 end
 
 function World:save()
@@ -82,17 +84,15 @@ function World:setBlock(x, y, z, block)
 end
 
 function World:updateBlockMesh(x, y, z)
-  local chunk = self:getChunk(x, z)
+  for dx = -1, 1 do
+    for dz = -1, 1 do
+      local ix, iz = x + dx, z + dz
+      local chunk = self:getChunk(ix, iz)
 
-  if chunk then
-    chunk:updateBlockMesh(x, y, z)
-    chunk:updateBlockMesh(x, y + 1, z)
-    chunk:updateBlockMesh(x, y - 1, z)
-
-    self:getChunk(x + 1, z):updateBlockMesh(x + 1, y, z)
-    self:getChunk(x - 1, z):updateBlockMesh(x - 1, y, z)
-    self:getChunk(x, z + 1):updateBlockMesh(x, y, z + 1)
-    self:getChunk(x,  z - 1):updateBlockMesh(x, y, z - 1)
+      chunk:updateBlockMesh(ix, y, iz)
+      chunk:updateBlockMesh(ix, y - 1, iz)
+      chunk:updateBlockMesh(ix, y + 1, iz)
+    end
   end
 end
 

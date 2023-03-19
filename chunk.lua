@@ -3,6 +3,7 @@ local Chunk = Object:extend()
 local blockTypes = require "blocks"
 local Vector = require "vector"
 local Matrix = require "matrix"
+local getVertex = require "mesh"
 
 local format = {
   { "VertexPosition", "float", 3 },
@@ -52,7 +53,7 @@ function Chunk:new(x, y, z, world)
   self.model = Matrix()
 
   self.channel = "chunk"..x..y..z
-  self.thread = love.thread.newThread("mesh.lua")
+  self.thread = love.thread.newThread("load_mesh.lua")
 
   self.start = 1
   self.step = 4
@@ -60,26 +61,31 @@ end
 
 function Chunk:load()
   self.done = true
-  self.thread:start(self.position:table(), self.blocks, self.channel, blockTypes)
+
+  local blocks = {}
+  for i = 0, CHUNK_SIZE + 1 do
+    blocks[i] = {}
+    for j = 0, CHUNK_HEIGHT + 1 do
+      blocks[i][j] = {}
+      for k = 0, CHUNK_SIZE + 1 do
+        local x, y, z = self.position.x + i, self.position.y + j, self.position.z + k
+        blocks[i][j][k] = self.world:getBlock(x, y, z)
+      end
+    end
+  end
+
+  self.thread:start(self.position:table(), blocks, self.channel, blockTypes)
 end
 
 function Chunk:setFace(index, mesh, x, y, z, value)
-  local cx, cy, cz = self.position:unpack()
+  local function getBlock(i, j, k)
+    local x, y, z = self.position.x + i, self.position.y + j, self.position.z + k
+    return self.world:getBlock(x, y, z)
+  end
+
   for i = 1, 6 do
-    local vertexData = {}
+    local vi, vertexData = getVertex(index, i, mesh, x, y, z, value, self.position:table(), getBlock)
 
-    if value == 0 and mesh then
-      local vertex = mesh[index*6+i]
-      local vx, vy, vz, u, v, normal = unpack(vertex)
-      vertexData = {
-        vx + x + cx, vy + y + cy, vz + z + cz,
-        u, v,
-        0, 0, 0,
-        1, 1, 1, 1
-      }
-    end
-
-    local vi = i + (index)*6 + (x-1)*6*6 + (y-1)*6*6*CHUNK_SIZE + (z-1)*6*6*CHUNK_SIZE*CHUNK_HEIGHT
     self.mesh:setVertex(vi, vertexData)
   end
 end
