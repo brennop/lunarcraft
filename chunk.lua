@@ -229,7 +229,7 @@ function Chunk:scheduleUpdate(i, j, k)
   end
 end
 
-local maxMeshUpdates = 64
+local maxMeshUpdates = 32
 function Chunk:update()
   local message = love.thread.getChannel(self.channel):pop()
 

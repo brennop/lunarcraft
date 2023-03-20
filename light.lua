@@ -83,13 +83,12 @@ function Light.addLight(chunk, i, j, k)
     value = chunk.lightMap[i][j + 1][k]
   end
 
-  -- TODO: sample from neighbors
-
   Light.setLight(chunk, i, j, k, value)
 end
 
 function Light.setLight(chunk, i, j, k, value)
   chunk.lightMap[i][j][k] = value
+  chunk.blocks[i][j][k] = value - maxLight
 
   local index = chunk.encodeIndex(i, j, k)
   local queue = { { chunk, index } }
