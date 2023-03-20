@@ -5,6 +5,7 @@ local Collider = require "collider"
 local Player = Object:extend()
 
 local GRAVITY = 32
+local SPEED = 1000
 
 function Player:new(world)
   self.world = world
@@ -13,7 +14,9 @@ function Player:new(world)
   self.velocity = Vector(0, 0, 0)
   self.accel = Vector(0, -GRAVITY, 0)
 
-  self.speed = 1000
+  self.speed = SPEED
+  self.targetSpeed = SPEED
+  self.sprint = 1.5
 
   self.width = 0.6
   self.height = 1.8
@@ -37,13 +40,17 @@ function Player:update(dt)
   self:updateCollider()
   self:checkCollisions(dt)
 
+  -- update speed
+  self.speed = self.speed + (self.targetSpeed - self.speed) * dt * 10
+
+  self.camera:updateProjection((self.speed - 1000) / 500 * 20 + self.camera.fov)
+
   -- FIXME: position should not come first, but collisions won't work otherwise
   self.position = self.position + self.velocity * dt
-
-  self.velocity.x = self.velocity.x * math.pow(0.95, dt * 100)
-  self.velocity.z = self.velocity.z * math.pow(0.95, dt * 100)
-
   self.velocity = self.velocity + self.accel * dt
+
+  self.velocity.x = self.velocity.x - self.velocity.x * 5 * dt 
+  self.velocity.z = self.velocity.z - self.velocity.z * 5 * dt
 
   self.camera.position = self.position + Vector(0, self.height, 0)
   self.camera:update(dt)
@@ -72,6 +79,8 @@ function Player:draw()
     debug("block", x, y, z)
     debug("chunk", chunk)
   end
+
+  debug("speed", self.speed)
 end
 
 function Player:handleInput(dt)
@@ -84,6 +93,12 @@ function Player:handleInput(dt)
   if love.keyboard.isDown "space" and self.ground then
     self.velocity.y = math.sqrt(2 * GRAVITY * 1.25)
     self.ground = false
+  end
+
+  if love.keyboard.isDown "lshift" then
+    self.targetSpeed = SPEED * self.sprint
+  else
+    self.targetSpeed = SPEED
   end
 
   local d = Vector(dx, 0, dz):rotated(self.yaw)

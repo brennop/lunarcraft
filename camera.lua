@@ -34,22 +34,22 @@ function Camera:new(world)
 
   self.near = 0.1
   self.far = 1000
-  self.fov = 90
+  self.fov = 75
   self.aspect = w / h
-
-  self._fov = 1 / math.tan(self.fov / 2 * math.pi / 180)
 
   self.drawDistance = 4
 
   self.shader = love.graphics.newShader(vert)
 
   self:updateDirection(0,0)
-  self:updateProjection()
+  self:updateProjection(self.fov)
   self:updateView()
 end
 
-function Camera:updateProjection()
-  local top = self.near * self._fov
+function Camera:updateProjection(_fov)
+  local fov = math.tan(_fov / 2 * math.pi / 180)
+
+  local top = self.near * fov
   local right = top * self.aspect
   local bottom = -top
   local left = -right
