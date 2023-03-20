@@ -65,6 +65,12 @@ function Chunk:new(x, y, z, world)
   self.step = 4
 end
 
+function Chunk:__tostring()
+  local nx = math.floor((self.position.x-1) / CHUNK_SIZE)
+  local nz = math.floor((self.position.z-1) / CHUNK_SIZE)
+  return "Chunk: "..nx..", "..nz
+end
+
 local function encodeIndex(i, j, k)
   return i + (j-1) * CHUNK_SIZE + (k-1) * CHUNK_SIZE * CHUNK_HEIGHT
 end
@@ -200,56 +206,58 @@ local normals = {
 }
 
 function Chunk:setTorch(i, j, k)
-  self.lightMap[i][j][k] = 15
+  self.lightMap[i][j][k] = 8
 
+  local chunk = self
   local index = encodeIndex(i, j, k)
-  local queue = { index }
+  local queue = { { chunk, index } }
 
   while #queue > 0 do
-    local index = table.remove(queue, 1)
+    local node = table.remove(queue, 1)
+    local chunk, index = node[1], node[2]
+
     local i, j, k = decodeIndex(index)
 
     if i > 0 and i <= CHUNK_SIZE and j > 0 and j <= CHUNK_HEIGHT and k > 0 and k <= CHUNK_SIZE then
-      local light = self.lightMap[i][j][k]
+      local light = chunk.lightMap[i][j][k]
 
-      for n = 1, 6 do
-        local dir = normals[n]
-        local ni, nj, nk = i + dir[1], j + dir[2], k + dir[3]
-        -- local x, y, z = ni + self.position.x, nj + self.position.y, nk + self.position.z
+      if light > 0 then
+        for n = 1, 6 do
+          local dir = normals[n]
+          local x, y, z = i + dir[1] + chunk.position.x, j + dir[2] + chunk.position.y, k + dir[3] + chunk.position.z
 
-        -- local chunk = self.world:getChunk(x, z)
-        -- local block = chunk:getBlock(x, y, z)
+          if y > 0 and y <= CHUNK_HEIGHT then
+            local chunk = self.world:getChunk(x, z)
+            local ci, cj, ck = x - chunk.position.x, y - chunk.position.y, z - chunk.position.z
 
-        -- local ci, cj, cz = x - chunk.position.x, y - chunk.position.y, z - chunk.position.z
-        -- if block <= 0 and chunk.lightMap[ci][cj][cz] + 2 <= light then
-        --   chunk.lightMap[ci][cj][cz] = light - 1
-        --   local newIndex = i * CHUNK_SIZE * CHUNK_HEIGHT + j * CHUNK_SIZE + k
-        -- end
+            local block = chunk.blocks[ci][cj][ck]
 
-        if ni > 0 and ni <= CHUNK_SIZE and nj > 0 and nj <= CHUNK_HEIGHT and nk > 0 and nk <= CHUNK_SIZE then
-          local block = self.blocks[ni][nj][nk]
-          if block <= 0 and self.lightMap[ni][nj][nk] + 2 <= light then
-            self.lightMap[ni][nj][nk] = light - 1
+            if block <= 0 and chunk.lightMap[ci][cj][ck] + 2 <= light then
+              chunk.lightMap[ci][cj][ck] = light - 1
+              chunk.blocks[ci][cj][ck] = light - 1 - 16
 
-            self.toUpdate[index] = true
-            for n2 = 1, 6 do
-              local dir2 = normals[n2]
-              local ni2, nj2, nk2 = ni + dir2[1], nj + dir2[2], nk + dir2[3]
-              local index2 = encodeIndex(ni2, nj2, nk2)
-              if ni2 > 0 and ni2 <= CHUNK_SIZE and nj2 > 0 and nj2 <= CHUNK_HEIGHT and nk2 > 0 and nk2 <= CHUNK_SIZE then
-                self.toUpdate[index2] = { ni2, nj2, nk2 }
+              local index = encodeIndex(ci, cj, ck)
+              chunk.toUpdate[index] = true
+
+              for n = 1, 6 do
+                local dir = normals[n]
+                local x, y, z = ci + dir[1] + chunk.position.x, cj + dir[2] + chunk.position.y, ck + dir[3] + chunk.position.z
+                if y > 0 and y <= CHUNK_HEIGHT then
+                  local chunk = self.world:getChunk(x, z)
+                  local ci, cj, ck = x - chunk.position.x, y - chunk.position.y, z - chunk.position.z
+                  local index = encodeIndex(ci, cj, ck)
+                  chunk.toUpdate[index] = true
+                end
               end
-            end
 
-            local newIndex = encodeIndex(ni, nj, nk)
-            table.insert(queue, newIndex)
+              local newIndex = encodeIndex(ci, cj, ck)
+              table.insert(queue, { chunk, newIndex })
+            end
           end
         end
       end
     end
   end
-
-  self:updateLight()
 end
 
 function Chunk:update()

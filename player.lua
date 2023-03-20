@@ -63,7 +63,14 @@ function Player:draw()
   if self.nextBlock then
     local x, y, z = self.nextBlock:unpack()
     local block = self.world:getBlock(x, y, z)
-    debug("block", block)
+    debug("light", block)
+  end
+
+  if self.currentBlock then
+    local x, y, z = self.currentBlock:unpack()
+    local chunk = self.world:getChunk(x, z)
+    debug("block", x, y, z)
+    debug("chunk", chunk)
   end
 end
 
