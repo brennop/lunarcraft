@@ -33,8 +33,6 @@ function World:load()
     local chunk = Chunk(x, 0, z, self)
     chunk.blocks = blocks
 
-    chunk:updateLight()
-
     if self.chunks[x] == nil then self.chunks[x] = {} end
     self.chunks[x][z] = chunk
   end
@@ -121,7 +119,6 @@ function World:update(dt)
         chunk:update(dt)
       end
 
-      done = false
       chunk.loaded = false
     end
   end

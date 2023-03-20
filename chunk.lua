@@ -43,7 +43,7 @@ function Chunk:new(x, y, z, world)
       for k = 1, CHUNK_SIZE do
         local x, y, z = self.position.x + i, self.position.y + j, self.position.z + k
 
-        local h = CHUNK_HEIGHT - math.floor(love.math.noise(x/10, z/10, 0) * 8)
+        local h = CHUNK_HEIGHT - math.floor(love.math.noise(x/20, z/20, 0) * 16) - 1
         local c = math.floor(love.math.noise(x/8, y/4, z/8, 1)*2)
 
         if j == h then
@@ -71,8 +71,7 @@ function Chunk:new(x, y, z, world)
   self.channel = "chunk"..x..y..z
   self.thread = love.thread.newThread("load_mesh.lua")
 
-  self.start = 1
-  self.step = 4
+  self:updateLight()
 end
 
 function Chunk:__tostring()

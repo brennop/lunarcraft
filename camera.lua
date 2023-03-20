@@ -37,7 +37,7 @@ function Camera:new(world)
   self.fov = 75
   self.aspect = w / h
 
-  self.drawDistance = 4
+  self.drawDistance = 8
 
   self.shader = love.graphics.newShader(vert)
 

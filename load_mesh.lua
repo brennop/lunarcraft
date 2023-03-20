@@ -40,10 +40,10 @@ function getMesh()
         setFace(4, mesh, i, j, k, getBlock(i + 1, j, k))
         setFace(5, mesh, i, j, k, getBlock(i - 1, j, k))
       end
-
-      love.thread.getChannel(channel):supply({vertices, start, #vertices})
-      start = last + 1
     end
+
+    love.thread.getChannel(channel):supply({vertices, start, #vertices})
+    start = last + 1
   end
 end
 

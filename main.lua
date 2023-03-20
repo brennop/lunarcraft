@@ -27,6 +27,7 @@ end
 function love.keypressed(key)
   if key == "escape" then love.event.quit() end
   if key == "f3" then love.window.setFullscreen(not love.window.getFullscreen()) end
+  if key == "f2" then love.graphics.captureScreenshot(os.time() .. ".png") end
   if key == "k" then world:save() end
 end
 

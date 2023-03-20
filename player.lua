@@ -29,7 +29,7 @@ function Player:new(world)
 
   self.camera = Camera(world)
 
-  self.loadRadius = 4
+  self.loadRadius = 6
 
   self.block = 1
 end
@@ -120,9 +120,7 @@ function Player:handlePress(_, _, button)
   elseif button == 3 then
     if self.currentBlock then
       local x, y, z = self.currentBlock:unpack()
-      local chunk = self.world:getChunk(x, z)
-      chunk:updateBlockMesh(x, y, z)
-      -- self.block = self.world:getBlock(x, y, z)
+      self.block = self.world:getBlock(x, y, z)
     end
   end
 end
