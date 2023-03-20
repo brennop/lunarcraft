@@ -117,11 +117,13 @@ function Chunk:updateLight()
       for k = 1, CHUNK_SIZE do
         local block = self.blocks[i][j][k]
         if block <= 0 then
-          self.blocks[i][j][k] = self.lightMap[i][j][k] - 16
+          self.blocks[i][j][k] = self.lightMap[i][j][k] - 8
         end
       end
     end
   end
+
+  Light.updateSunLight(self)
 end
 
 function Chunk:setFace(index, mesh, x, y, z, value)
@@ -201,33 +203,33 @@ function Chunk:setBlock(x, y, z, block)
   if self.blocks[i][j][k] == block then return end
 
   self.blocks[i][j][k] = block
-
-  if block > 0 then 
-    Light.setLight(self, i, j, k, 16)
-  else 
-    Light.removeLight(self, i, j, k)
-  end
   
+  if block > 0 then
+    Light.removeLight(self, i, j, k, block)
+  else
+    Light.addLight(self, i, j, k)
+  end
+
   self.scheduleUpdate(self, i, j, k)
 end
 
 function Chunk:scheduleUpdate(i, j, k)
-  local index = self.encodeIndex(i, j, k)
-  self.toUpdate[index] = true
-
-  for n = 1, 6 do
-    local dir = normals[n]
-    local x, y, z = i + dir[1] + self.position.x, j + dir[2] + self.position.y, k + dir[3] + self.position.z
-    if y > 0 and y <= CHUNK_HEIGHT then
-      local chunk = self.world:getChunk(x, z)
-      local ci, cj, ck = x - chunk.position.x, y - chunk.position.y, z - chunk.position.z
-      local index = self.encodeIndex(ci, cj, ck)
-      chunk.toUpdate[index] = true
+  for dx = -1, 1 do
+    for dy = -1, 1 do
+      for dz = -1, 1 do
+        local x, y, z = i + dx + self.position.x, j + dy + self.position.y, k + dz + self.position.z
+        local chunk = self.world:getChunk(x, z)
+        if chunk then
+          local ci, cj, ck = x - chunk.position.x, y - chunk.position.y, z - chunk.position.z
+          local index = self.encodeIndex(ci, cj, ck)
+          chunk.toUpdate[index] = true
+        end
+      end
     end
   end
 end
 
-local maxMeshUpdates = 100
+local maxMeshUpdates = 64
 function Chunk:update()
   local message = love.thread.getChannel(self.channel):pop()
 

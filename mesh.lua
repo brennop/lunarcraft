@@ -42,8 +42,8 @@ function getVertex(index, i, mesh, x, y, z, value, cPos, getBlock)
       state = 4 - side1 - side2 - corner
     end
 
-    local light = (value + 16) / 16
-    s = (m * 0.4 + 0.6 * light) * shading[state]
+    local light = (value + 8) / 8
+    s = m * 0.4 * shading[state] + 0.6 * light 
 
     vertexData = {
       vx + x + cx, vy + y + cy, vz + z + cz,

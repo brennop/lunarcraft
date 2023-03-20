@@ -105,7 +105,9 @@ function Player:handlePress(_, _, button)
   elseif button == 3 then
     if self.currentBlock then
       local x, y, z = self.currentBlock:unpack()
-      self.block = self.world:getBlock(x, y, z)
+      local chunk = self.world:getChunk(x, z)
+      chunk:updateBlockMesh(x, y, z)
+      -- self.block = self.world:getBlock(x, y, z)
     end
   end
 end
