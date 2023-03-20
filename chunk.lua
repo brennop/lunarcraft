@@ -3,6 +3,7 @@ local Chunk = Object:extend()
 local blockTypes = require "blocks"
 local Vector = require "vector"
 local Matrix = require "matrix"
+local Light = require "light"
 local getVertex = require "mesh"
 
 local format = {
@@ -10,6 +11,15 @@ local format = {
   { "VertexTexCoord", "float", 2 },
   { "VertexNormal", "float", 3 },
   { "VertexColor", "byte", 4 },
+}
+
+local normals = {
+  {  0,  0,  1 },
+  {  0,  1,  0 },
+  {  0,  0, -1 },
+  {  0, -1,  0 },
+  {  1,  0,  0 },
+  { -1,  0,  0 },
 }
 
 local maxVertices = CHUNK_SIZE * CHUNK_HEIGHT * CHUNK_SIZE * 6 * 6
@@ -71,11 +81,11 @@ function Chunk:__tostring()
   return "Chunk: "..nx..", "..nz
 end
 
-local function encodeIndex(i, j, k)
+function Chunk.encodeIndex(i, j, k)
   return i + (j-1) * CHUNK_SIZE + (k-1) * CHUNK_SIZE * CHUNK_HEIGHT
 end
 
-local function decodeIndex(index)
+function Chunk.decodeIndex(index)
   local i = (index - 1) % CHUNK_SIZE + 1
   local j = math.floor((index - 1) / CHUNK_SIZE) % CHUNK_HEIGHT + 1
   local k = math.floor((index - 1) / (CHUNK_SIZE * CHUNK_HEIGHT)) % CHUNK_SIZE + 1
@@ -190,76 +200,34 @@ function Chunk:setBlock(x, y, z, block)
 
   if self.blocks[i][j][k] == block then return end
 
-  if block > 0 then self:setTorch(i, j, k) end
-
   self.blocks[i][j][k] = block
-  -- self.world:updateBlockMesh(x, y, z)
+
+  if block > 0 then 
+    Light.setLight(self, i, j, k, 16)
+  else 
+    Light.removeLight(self, i, j, k)
+  end
+  
+  self.scheduleUpdate(self, i, j, k)
 end
 
-local normals = {
-  {  0,  0,  1 },
-  {  0,  1,  0 },
-  {  0,  0, -1 },
-  {  0, -1,  0 },
-  {  1,  0,  0 },
-  { -1,  0,  0 },
-}
+function Chunk:scheduleUpdate(i, j, k)
+  local index = self.encodeIndex(i, j, k)
+  self.toUpdate[index] = true
 
-function Chunk:setTorch(i, j, k)
-  self.lightMap[i][j][k] = 8
-
-  local chunk = self
-  local index = encodeIndex(i, j, k)
-  local queue = { { chunk, index } }
-
-  while #queue > 0 do
-    local node = table.remove(queue, 1)
-    local chunk, index = node[1], node[2]
-
-    local i, j, k = decodeIndex(index)
-
-    if i > 0 and i <= CHUNK_SIZE and j > 0 and j <= CHUNK_HEIGHT and k > 0 and k <= CHUNK_SIZE then
-      local light = chunk.lightMap[i][j][k]
-
-      if light > 0 then
-        for n = 1, 6 do
-          local dir = normals[n]
-          local x, y, z = i + dir[1] + chunk.position.x, j + dir[2] + chunk.position.y, k + dir[3] + chunk.position.z
-
-          if y > 0 and y <= CHUNK_HEIGHT then
-            local chunk = self.world:getChunk(x, z)
-            local ci, cj, ck = x - chunk.position.x, y - chunk.position.y, z - chunk.position.z
-
-            local block = chunk.blocks[ci][cj][ck]
-
-            if block <= 0 and chunk.lightMap[ci][cj][ck] + 2 <= light then
-              chunk.lightMap[ci][cj][ck] = light - 1
-              chunk.blocks[ci][cj][ck] = light - 1 - 16
-
-              local index = encodeIndex(ci, cj, ck)
-              chunk.toUpdate[index] = true
-
-              for n = 1, 6 do
-                local dir = normals[n]
-                local x, y, z = ci + dir[1] + chunk.position.x, cj + dir[2] + chunk.position.y, ck + dir[3] + chunk.position.z
-                if y > 0 and y <= CHUNK_HEIGHT then
-                  local chunk = self.world:getChunk(x, z)
-                  local ci, cj, ck = x - chunk.position.x, y - chunk.position.y, z - chunk.position.z
-                  local index = encodeIndex(ci, cj, ck)
-                  chunk.toUpdate[index] = true
-                end
-              end
-
-              local newIndex = encodeIndex(ci, cj, ck)
-              table.insert(queue, { chunk, newIndex })
-            end
-          end
-        end
-      end
+  for n = 1, 6 do
+    local dir = normals[n]
+    local x, y, z = i + dir[1] + self.position.x, j + dir[2] + self.position.y, k + dir[3] + self.position.z
+    if y > 0 and y <= CHUNK_HEIGHT then
+      local chunk = self.world:getChunk(x, z)
+      local ci, cj, ck = x - chunk.position.x, y - chunk.position.y, z - chunk.position.z
+      local index = self.encodeIndex(ci, cj, ck)
+      chunk.toUpdate[index] = true
     end
   end
 end
 
+local maxMeshUpdates = 100
 function Chunk:update()
   local message = love.thread.getChannel(self.channel):pop()
 
@@ -268,12 +236,14 @@ function Chunk:update()
     self.mesh:setVertices(vertices, start, count)
   end
 
+  local meshUpdates = 0
   for index, v in pairs(self.toUpdate) do
-    local i, j, k = decodeIndex(index)
+    if meshUpdates >= maxMeshUpdates then break end
+    local i, j, k = self.decodeIndex(index)
     self:updateBlockMesh(i + self.position.x, j + self.position.y, k + self.position.z)
+    self.toUpdate[index] = nil
+    meshUpdates = meshUpdates + 1
   end
-
-  self.toUpdate = {}
 end
 
 function Chunk:draw()
