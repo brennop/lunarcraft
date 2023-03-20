@@ -47,6 +47,8 @@ function Chunk:new(x, y, z, world)
     end
   end
 
+  self:updateLight()
+
   self.mesh = love.graphics.newMesh(format, maxVertices, "triangles")
   self.mesh:setTexture(tileset)
 
@@ -90,27 +92,26 @@ function Chunk:setFace(index, mesh, x, y, z, value)
   end
 end
 
-function Chunk:updateMesh(start, stop)
+function Chunk:updateMesh()
   local vertices = {}
   local v = 1
 
   local cx, cy, cz = self.position:unpack()
 
-  for f = start, stop do
-    local i = math.floor((f-1) / CHUNK_SIZE) + 1
-    local k = (f-1) % CHUNK_SIZE + 1
-
+  for k = 1, CHUNK_SIZE do
     for j = 1, CHUNK_HEIGHT do
-      local block = self.blocks[i][j][k]
-      local mesh = blockTypes[block]
-      local x, y, z = i + cx, j + cy, k + cz
+      for i = 1, CHUNK_SIZE do
+        local block = self.blocks[i][j][k]
+        local mesh = blockTypes[block]
+        local x, y, z = i + cx, j + cy, k + cz
 
-      self:setFace(0, mesh, i, j, k, self.world:getBlock(x, y, z + 1))
-      self:setFace(1, mesh, i, j, k, self.world:getBlock(x, y + 1, z))
-      self:setFace(2, mesh, i, j, k, self.world:getBlock(x, y, z - 1))
-      self:setFace(3, mesh, i, j, k, self.world:getBlock(x, y - 1, z))
-      self:setFace(4, mesh, i, j, k, self.world:getBlock(x + 1, y, z))
-      self:setFace(5, mesh, i, j, k, self.world:getBlock(x - 1, y, z))
+        self:setFace(0, mesh, i, j, k, self.world:getBlock(x, y, z + 1))
+        self:setFace(1, mesh, i, j, k, self.world:getBlock(x, y + 1, z))
+        self:setFace(2, mesh, i, j, k, self.world:getBlock(x, y, z - 1))
+        self:setFace(3, mesh, i, j, k, self.world:getBlock(x, y - 1, z))
+        self:setFace(4, mesh, i, j, k, self.world:getBlock(x + 1, y, z))
+        self:setFace(5, mesh, i, j, k, self.world:getBlock(x - 1, y, z))
+      end
     end
   end
 
@@ -145,6 +146,71 @@ function Chunk:getBlock(x, y, z)
   return self.blocks[x][y][z]
 end
 
+function Chunk:updateLight()
+  local normals = {
+    {  0,  0,  1 },
+    {  0,  0, -1 },
+    {  0, -1,  0 },
+    {  1,  0,  0 },
+    { -1,  0,  0 },
+  }
+
+  local lights = {}
+  for i = 1, CHUNK_SIZE do
+    lights[i] = {}
+    for j = 1, CHUNK_HEIGHT do
+      lights[i][j] = {}
+      for k = 1, CHUNK_SIZE do
+        lights[i][j][k] = 0
+      end
+    end
+  end
+
+  -- start at the top, in the middle and work our way down
+  local sx, sy, sz = math.floor(CHUNK_SIZE / 2), CHUNK_HEIGHT, math.floor(CHUNK_SIZE / 2)
+  lights[sx][sy][sz] = CHUNK_HEIGHT
+
+  -- traverse the chunk, propagating light
+  local queue = {}
+  
+  table.insert(queue, { sx, sy, sz })
+
+  while #queue > 0 do
+    local x, y, z = unpack(table.remove(queue, 1))
+    local light = lights[x][y][z]
+
+    for i = 1, 5 do
+      local nx, ny, nz = x + normals[i][1], y + normals[i][2], z + normals[i][3]
+
+      if nx < 1 or nx > CHUNK_SIZE or ny < 1 or ny > CHUNK_HEIGHT or nz < 1 or nz > CHUNK_SIZE then
+        goto continue
+      end
+
+      local block = self.blocks[nx][ny][nz]
+      if block <= 0 then
+        local nlight = light - 1
+        if nlight > lights[nx][ny][nz] then
+          lights[nx][ny][nz] = nlight
+          table.insert(queue, { nx, ny, nz })
+        end
+      end
+
+      ::continue::
+    end
+  end
+
+  for i = 1, CHUNK_SIZE do
+    for j = 1, CHUNK_HEIGHT do
+      for k = 1, CHUNK_SIZE do
+        local block = self.blocks[i][j][k]
+        if block <= 0 then
+          self.blocks[i][j][k] = math.min(lights[i][j][k], 8) - 8
+        end
+      end
+    end
+  end
+end
+
 function Chunk:setBlock(x, y, z, block)
   if y < 1 or y > CHUNK_HEIGHT then return end
 
@@ -154,7 +220,9 @@ function Chunk:setBlock(x, y, z, block)
   if self.blocks[i][j][k] == block then return end
 
   self.blocks[i][j][k] = block
-  self.world:updateBlockMesh(x, y, z)
+  -- self.world:updateBlockMesh(x, y, z)
+  self:updateLight()
+  self:updateMesh()
 end
 
 function Chunk:update()

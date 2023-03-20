@@ -60,7 +60,11 @@ end
 function Player:draw()
   self.camera:draw()
 
-  debug(self.currentBlock)
+  if self.nextBlock then
+    local x, y, z = self.nextBlock:unpack()
+    local block = self.world:getBlock(x, y, z)
+    debug("block", block)
+  end
 end
 
 function Player:handleInput(dt)
