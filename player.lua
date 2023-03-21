@@ -29,7 +29,7 @@ function Player:new(world)
 
   self.camera = Camera(world)
 
-  self.loadRadius = 6
+  self.loadRadius = 4
 
   self.block = 1
 end
@@ -59,7 +59,9 @@ function Player:update(dt)
 
   for x = -self.loadRadius, self.loadRadius do
     for z = -self.loadRadius, self.loadRadius do
-      self.world:loadChunk(self.position.x + x * CHUNK_SIZE, self.position.z + z * CHUNK_SIZE)
+      if x * x + z * z <= self.loadRadius * self.loadRadius then
+        self.world:loadChunk(self.position.x + x * CHUNK_SIZE, self.position.z + z * CHUNK_SIZE)
+      end
     end
   end
 end

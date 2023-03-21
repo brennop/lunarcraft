@@ -6,9 +6,11 @@ local World = {}
 function World:new()
   self.chunks = {}
 
-  self:load()
+  -- self:load()
 
   self._generated = false
+
+  self.thread = love.thread.newThread("load_mesh.lua")
 
   return self
 end
@@ -102,8 +104,8 @@ function World:loadChunk(x, z)
   if chunk then
     chunk.loaded = true
 
-    if not chunk.done and not chunk.thread:isRunning() then
-      chunk:load()
+    if chunk.dirty and not self.thread:isRunning() then
+      chunk:load(self.thread)
     end
   else
     self:generateChunk(x, z)

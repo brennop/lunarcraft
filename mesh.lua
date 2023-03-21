@@ -6,10 +6,10 @@ local shading = {
 }
 
 function getVertex(index, i, mesh, x, y, z, value, cPos, getBlock)
-  local vertexData = {}
+  local vertexData = nil
 
   local cx, cy, cz = cPos[1], cPos[2], cPos[3]
-  if value <= 0 and mesh then
+  if value == 0 and mesh then
     local vertex = mesh[index*6+i]
     local vx, vy, vz, u, v, normal = unpack(vertex)
 
@@ -42,20 +42,18 @@ function getVertex(index, i, mesh, x, y, z, value, cPos, getBlock)
       state = 4 - side1 - side2 - corner
     end
 
-    local light = (value + 8) / 8
-    s = m * 0.4 * shading[state] + 0.6 * light 
+    s = m * shading[state]
 
     vertexData = {
       vx + x + cx, vy + y + cy, vz + z + cz,
       u, v,
-      0, 0, 0,
       s, s, s, 1
     }
   end
 
   local vi = i + (index)*6 + (x-1)*6*6 + (y-1)*6*6*CHUNK_SIZE + (z-1)*6*6*CHUNK_SIZE*CHUNK_HEIGHT
 
-  return vi, vertexData
+  return vertexData
 end
 
 return getVertex

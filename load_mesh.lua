@@ -12,17 +12,18 @@ end
 
 function getMesh()
   local vertices = {}
-  local start = 1
-  local last
+  local vi = 1
 
   local cx, cy, cz = position[1], position[2], position[3]
 
   function setFace(index, mesh, x, y, z, value)
     for i = 1, 6 do
-      local vi, vertexData = getVertex(index, i, mesh, x, y, z, value, position, getBlock)
+      local vertexData = getVertex(index, i, mesh, x, y, z, value, position, getBlock)
 
-      vertices[vi - start + 1] = vertexData
-      last = vi
+      if vertexData then
+        vertices[vi] = vertexData
+        vi = vi + 1
+      end
     end
   end
 
@@ -41,10 +42,9 @@ function getMesh()
         setFace(5, mesh, i, j, k, getBlock(i - 1, j, k))
       end
     end
-
-    love.thread.getChannel(channel):supply({vertices, start, #vertices})
-    start = last + 1
   end
+
+  love.thread.getChannel(channel):supply(vertices)
 end
 
 getMesh()
