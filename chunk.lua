@@ -49,6 +49,9 @@ function Chunk:new(x, y, z, world)
   self.mesh = nil
 
   self.model = Matrix()
+  self.model[4] = self.position.x
+  self.model[8] = self.position.y
+  self.model[12] = self.position.z
 
   self.channel = self:__tostring()
 end

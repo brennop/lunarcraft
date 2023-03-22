@@ -14,11 +14,9 @@ function getMesh()
   local vertices = {}
   local vi = 1
 
-  local cx, cy, cz = position[1], position[2], position[3]
-
   function setFace(index, mesh, x, y, z, value)
     for i = 1, 6 do
-      local vertexData = getVertex(index, i, mesh, x, y, z, value, position, getBlock)
+      local vertexData = getVertex(index, i, mesh, x, y, z, value, getBlock)
 
       if vertexData then
         vertices[vi] = vertexData
@@ -32,7 +30,6 @@ function getMesh()
       for i = 1, CHUNK_SIZE do
         local block = blocks[i][j][k]
         local mesh = blockTypes[block]
-        local x, y, z = i + cx, j + cy, k + cz
 
         setFace(0, mesh, i, j, k, getBlock(i, j, k + 1))
         setFace(1, mesh, i, j, k, getBlock(i, j + 1, k))

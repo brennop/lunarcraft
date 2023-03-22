@@ -5,10 +5,9 @@ local shading = {
   0.3, 0.4, 0.6, 1,
 }
 
-function getVertex(index, i, mesh, x, y, z, value, cPos, getBlock)
+function getVertex(index, i, mesh, x, y, z, value, getBlock)
   local vertexData = nil
 
-  local cx, cy, cz = cPos[1], cPos[2], cPos[3]
   if value == 0 and mesh then
     local vertex = mesh[index*6+i]
     local vx, vy, vz, u, v, normal = unpack(vertex)
@@ -45,7 +44,7 @@ function getVertex(index, i, mesh, x, y, z, value, cPos, getBlock)
     s = m * shading[state]
 
     vertexData = {
-      vx + x + cx, vy + y + cy, vz + z + cz,
+      vx + x, vy + y, vz + z,
       u, v,
       s, s, s, 1
     }
