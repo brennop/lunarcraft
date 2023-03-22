@@ -4,9 +4,11 @@ local blockTypes = require "blocks"
 local Vector = require "vector"
 local Matrix = require "matrix"
 
+-- TODO: use less memory for the vertex
 local format = {
   { "VertexPosition", "float", 3 },
   { "VertexTexCoord", "float", 2 },
+  { "VertexNormal", "float", 3 },
   { "VertexColor", "byte", 4 },
 }
 

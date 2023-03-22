@@ -41,11 +41,12 @@ function getVertex(index, i, mesh, x, y, z, value, getBlock)
       state = 4 - side1 - side2 - corner
     end
 
-    s = m * shading[state]
+    s = shading[state]
 
     vertexData = {
       vx + x, vy + y, vz + z,
       u, v,
+      nx, ny, nz,
       s, s, s, 1
     }
   end

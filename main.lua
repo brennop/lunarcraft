@@ -32,8 +32,8 @@ function love.keypressed(key)
 end
 
 function love.load()
-  love.graphics.setDepthMode("lequal", true)
-  love.graphics.setMeshCullMode("back")
+  -- love.graphics.setDepthMode("lequal", true)
+  -- love.graphics.setMeshCullMode("back")
 
   love.mouse.setRelativeMode(true)
   love.graphics.setDefaultFilter("nearest", "nearest")

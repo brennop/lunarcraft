@@ -12,9 +12,66 @@ uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 
+uniform mat4 shadowProjectionMatrix;
+uniform mat4 shadowViewMatrix;
+varying vec4 fragPosShadowSpace;
+
+attribute vec3 VertexNormal;
+
+varying vec3 vertexNormal;
+varying vec4 worldPosition;
+
 vec4 position( mat4 transform_projection, vec4 vertexPosition )
 {
-    return projectionMatrix * viewMatrix * modelMatrix * vertexPosition;
+    worldPosition = modelMatrix * vertexPosition;
+
+    vertexNormal = VertexNormal;
+
+    fragPosShadowSpace = shadowProjectionMatrix * shadowViewMatrix * worldPosition;
+
+    return projectionMatrix * viewMatrix * worldPosition;
+}
+]]
+
+local pixel = [[
+uniform vec3 lightPos;
+
+uniform Image shadowMap;
+varying vec4 fragPosShadowSpace;
+
+varying vec3 vertexNormal;
+varying vec4 worldPosition;
+
+float calculateShadow(vec4 fragPosLightSpace) 
+{
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = Texel(shadowMap, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // check whether current frag pos is in shadow
+    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+
+    return shadow;
+}
+
+vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
+{
+    vec3 lightDir = normalize(lightPos - worldPosition.xyz);
+    float diff = max(dot(vertexNormal, lightDir), 0.0) * 0.5 + 0.5;
+    float shadow = calculateShadow(fragPosShadowSpace);
+
+    // work arround while we don't calculate ambient light correctly
+    shadow = shadow * 0.5;
+
+    diff *= 1 - shadow;
+    vec4 light = vec4(diff, diff, diff, 1.0);
+
+    vec4 texturecolor = Texel(tex, texture_coords);
+    return texturecolor * color * light;
 }
 ]]
 
@@ -39,11 +96,31 @@ function Camera:new(world)
 
   self.drawDistance = 8
 
-  self.shader = love.graphics.newShader(vert)
+  self.shader = love.graphics.newShader(pixel, vert)
+  self.light = Vector(16, 36, 20)
+
+  self.shadowMap = love.graphics.newCanvas(1280, 1280,  { format = "depth24", readable = true })
+  self.shadowShader = love.graphics.newShader("shaders/depthShader.glsl")
+
+  self.shadowProjection = Matrix()
+  self.shadowView = Matrix()
+
+  local k = 32
+  self.shadowProjection:ortho(-k, k, -k, k, 1, 100)
+  self.shadowView:lookAt(Vector(16, 64, 20), Vector(0, 0, 0), Vector(0, 1, 0))
+
+  self.debugShadowMapShader = love.graphics.newShader([[
+vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
+{
+    float v = Texel(tex, texture_coords).r;
+    return vec4(v, v, v, 1.0);
+}
+  ]])
 
   self:updateDirection(0,0)
   self:updateProjection(self.fov)
   self:updateView()
+
 end
 
 function Camera:updateProjection(_fov)
@@ -70,16 +147,7 @@ function Camera:updateProjection(_fov)
 end
 
 function Camera:updateView()
-  local z = (self.forward):normalized()
-  local x = self.up:cross(z):normalized()
-  local y = z:cross(x)
-
-  self.view:set({
-    x.x, x.y, x.z, -x:dot(self.position),
-    y.x, y.y, y.z, -y:dot(self.position),
-    z.x, z.y, z.z, -z:dot(self.position),
-    0,   0,   0,   1
-  })
+  self.view:lookAt(self.position, self.position - self.forward, self.up)
 end
 
 function Camera:updateDirection(dx, dy)
@@ -100,23 +168,19 @@ function Camera:updateDirection(dx, dy)
   self.right = self.forward:cross(Vector(0, 1, 0))
   self.up = self.right:cross(self.forward)
 
-  self:updateView()
+  -- self:updateView()
 end
 
 function Camera:update()
   self:updateView()
+
+  -- rotate sunlight
+  -- self.light = self.light:rotated(love.timer.getTime() * 0.1)
 end
 
-function Camera:draw()
-  love.graphics.setShader(self.shader)
-
-  self.shader:send("viewMatrix", self.view)
-  self.shader:send("projectionMatrix", self.projection)
-
-  -- self.world:draw()
+function Camera:drawWorld()
   for x = -self.drawDistance*CHUNK_SIZE, self.drawDistance*CHUNK_SIZE, CHUNK_SIZE do
     for z = -self.drawDistance*CHUNK_SIZE, self.drawDistance*CHUNK_SIZE, CHUNK_SIZE do
-      -- offset by position
       local px, py = x + self.position.x, z + self.position.z
 
       local chunk = self.world:getChunk(px, py)
@@ -125,8 +189,47 @@ function Camera:draw()
       end
     end
   end
+end
+
+function Camera:drawShadowMap()
+  love.graphics.setShader(self.shadowShader)
+
+  self.shadowShader:send("viewMatrix", self.shadowView)
+  self.shadowShader:send("projectionMatrix", self.shadowProjection)
+
+  love.graphics.setCanvas({ depthstencil = self.shadowMap })
+  love.graphics.clear(1, 0, 0)
+  love.graphics.setDepthMode("lequal", true)
+
+  self:drawWorld()
+
+  love.graphics.setDepthMode()
+  love.graphics.setCanvas()
+  love.graphics.setShader()
+end
+
+function Camera:draw()
+  self:drawShadowMap()
+
+  love.graphics.setDepthMode("lequal", true)
+  love.graphics.setMeshCullMode("back")
+  love.graphics.setShader(self.shader)
+
+  self.shader:send("lightPos", { self.light.x, self.light.z, self.light.y })
+  self.shader:send("viewMatrix", self.view)
+  self.shader:send("projectionMatrix", self.projection)
+
+  self.shader:send("shadowViewMatrix", self.shadowView)
+  self.shader:send("shadowProjectionMatrix", self.shadowProjection)
+  self.shader:send("shadowMap", self.shadowMap)
+
+  self:drawWorld()
 
   love.graphics.setShader()
+
+  -- love.graphics.setShader(self.debugShadowMapShader)
+  -- love.graphics.draw(self.shadowMap, 0, 0, 0, 0.5, 0.5)
+  -- love.graphics.setShader()
 end
 
 function Camera:hit()
