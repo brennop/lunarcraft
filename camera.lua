@@ -112,13 +112,15 @@ function Camera:update()
 end
 
 function Camera:drawWorld()
-  for x = -self.drawDistance*CHUNK_SIZE, self.drawDistance*CHUNK_SIZE, CHUNK_SIZE do
-    for z = -self.drawDistance*CHUNK_SIZE, self.drawDistance*CHUNK_SIZE, CHUNK_SIZE do
-      local px, py = x + self.position.x, z + self.position.z
+  for x = -self.drawDistance, self.drawDistance do
+    for z = -self.drawDistance, self.drawDistance do
+      if x * x + z * z <= self.drawDistance * self.drawDistance then
+        local px, py = x * CHUNK_SIZE + self.position.x, z * CHUNK_SIZE + self.position.z
+        local chunk = self.world:getChunk(px, py)
 
-      local chunk = self.world:getChunk(px, py)
-      if chunk then
-        chunk:draw()
+        if chunk then
+          chunk:draw()
+        end
       end
     end
   end

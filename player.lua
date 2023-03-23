@@ -29,7 +29,7 @@ function Player:new(world)
 
   self.camera = Camera(world)
 
-  self.loadRadius = 4
+  self.loadRadius = 6
 
   self.block = 1
 end

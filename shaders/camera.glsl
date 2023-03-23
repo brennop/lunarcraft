@@ -69,14 +69,15 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
 {
     vec3 lightDir = normalize(lightPos - worldPosition.xyz);
     float lightDot = dot(vertexNormal, lightDir);
-    float diff = max(lightDot, 0.0) * 0.5 + 0.5;
+
+    float diff = max(lightDot, 0.0) + 0.5;
     float shadow = calculateShadow(fragPosShadowSpace, lightDot);
 
-    // work arround while we don't calculate ambient light correctly
-    shadow = shadow * 0.5;
+    vec3 lightColor = vec3(0.5);
+    vec3 ambient = 0.5 * lightColor;
+    vec3 diffuse = diff * lightColor;
 
-    diff *= 1 - shadow;
-    vec4 light = vec4(diff, diff, diff, 1.0);
+    vec4 light = vec4(diffuse * (1.0 - shadow) + ambient, 1.0);
 
     vec4 texturecolor = Texel(tex, texture_coords);
     return texturecolor * color * light;

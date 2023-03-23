@@ -6,7 +6,7 @@ local World = {}
 function World:new()
   self.chunks = {}
 
-  -- self:load()
+  self:load()
 
   self._generated = false
 
