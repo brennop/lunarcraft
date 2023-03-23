@@ -6,6 +6,7 @@ local Matrix = require "matrix"
 local cos, sin = math.cos, math.sin
 
 local w, h = 400, 300
+local shadowMapResolution = 2048
 
 function Camera:new(world)
   self.position = Vector(0, CHUNK_HEIGHT + 2, 0)
@@ -31,14 +32,14 @@ function Camera:new(world)
   self.shader = love.graphics.newShader("shaders/camera.glsl")
   self.light = Vector(16, 64, 20)
 
-  self.shadowMap = love.graphics.newCanvas(1280, 1280,  { format = "depth24", readable = true })
+  self.shadowMap = love.graphics.newCanvas(shadowMapResolution, shadowMapResolution,  { format = "depth24", readable = true })
   self.shadowMap:setWrap("clamp")
   self.shadowShader = love.graphics.newShader("shaders/depthShader.glsl")
 
   self.shadowProjection = Matrix()
   self.shadowView = Matrix()
 
-  local k = 32
+  local k = 48
   self.shadowProjection:ortho(-k, k, -k, k, 1, 100)
 
   self.debugShadowMapShader = love.graphics.newShader([[
@@ -147,8 +148,8 @@ end
 function Camera:draw()
   self:drawShadowMap()
 
+  love.graphics.setMeshCullMode("back")
   love.graphics.setDepthMode("lequal", true)
-  love.graphics.setMeshCullMode("none")
   love.graphics.setShader(self.shader)
 
   self.shader:send("lightPos", { self.light.x, self.light.z, self.light.y })
@@ -163,9 +164,9 @@ function Camera:draw()
 
   love.graphics.setShader()
 
---   love.graphics.setShader(self.debugShadowMapShader)
---   love.graphics.draw(self.shadowMap, 0, 0, 0, 0.5, 0.5)
---   love.graphics.setShader()
+  -- love.graphics.setShader(self.debugShadowMapShader)
+  -- love.graphics.draw(self.shadowMap, 0, 0, 0, 0.5, 0.5)
+  -- love.graphics.setShader()
 end
 
 function Camera:hit()

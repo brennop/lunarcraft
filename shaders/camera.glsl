@@ -42,11 +42,11 @@ float calculateShadow(vec4 fragPosLightSpace, float lightDot)
     float currentDepth = projCoords.z;
 
     // check whether current frag pos is in shadow
-    float bias = max(0.001 * (1.0 - lightDot), 0.005);
+    float bias = max(0.002 * (1.0 - lightDot), 0.005);
     float shadow = 0;
 
      // TODO: use textureSize instead of hardcode resolution
-    vec2 texelSize = vec2(1.0 / 1280.0, 1.0 / 1280.0);
+    vec2 texelSize = vec2(1.0 / 2048.0, 1.0 / 2048.0);
 
     for(int x = -1; x <= 1; ++x)
     {
