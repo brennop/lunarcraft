@@ -5,14 +5,26 @@ local shading = {
   0.3, 0.4, 0.6, 1,
 }
 
+function sign(value)
+  if value > 0 then
+    return 1
+  elseif value < 0 then
+    return -1
+  else
+    return 0
+  end
+end
+
 function getVertex(index, i, mesh, x, y, z, value, getBlock)
   local vertexData = nil
 
-  if value == 0 and mesh then
-    local vertex = mesh[index*6+i]
-    local vx, vy, vz, u, v, normal = unpack(vertex)
+  local block = getBlock(x, y, z)
 
-    local dx, dy, dz = 2*vx, 2*vy, 2*vz
+  if (value == 0 or (value == 4 and block ~= 4)) and mesh then
+    local vertex = mesh[index*6+i]
+    local vx, vy, vz, u, v, normal, alpha = unpack(vertex)
+
+    local dx, dy, dz = sign(vx), sign(vy), sign(vz)
     local nx, ny, nz = normal[1], normal[2], normal[3]
     local side1, side2, corner, m
 
@@ -47,7 +59,7 @@ function getVertex(index, i, mesh, x, y, z, value, getBlock)
       vx + x, vy + y, vz + z,
       u, v,
       nx, ny, nz,
-      s, s, s, 1
+      s, s, s, alpha
     }
   end
 

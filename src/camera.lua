@@ -150,7 +150,7 @@ end
 function Camera:draw()
   self:drawShadowMap()
 
-  love.graphics.setMeshCullMode("back")
+  love.graphics.setMeshCullMode("none")
   love.graphics.setDepthMode("lequal", true)
   love.graphics.setShader(self.shader)
 

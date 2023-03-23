@@ -1,6 +1,6 @@
 -- to be run on another thread
 local CHUNK_SIZE = 16
-local CHUNK_HEIGHT = 32
+local CHUNK_HEIGHT = 48
 
 local position, blocks, channel, blockTypes = ...
 

@@ -45,8 +45,14 @@ local faces = {
   { 5, 3, 1, 2, 3, 4, 6 },  -- left
 }
 
-return function(textures)
+return function(textures, config)
   local cube = {}
+
+  config = config or {}
+  local vertices = config.vertices or vertices
+  local uvs = config.uvs or uvs
+  local normals = config.normals or normals
+  local alpha = config.alpha or 1
 
   for i, face in ipairs(faces) do
     local tile = textures[math.ceil(i / 2)]
@@ -66,6 +72,7 @@ return function(textures)
         u + uvs[uv][1] * step,
         v + uvs[uv][2] * step,
         normals[normal],
+        alpha
       }
     end
   end

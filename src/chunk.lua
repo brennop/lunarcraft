@@ -18,37 +18,10 @@ function Chunk:new(x, y, z, world)
   self.position = Vector(x * CHUNK_SIZE, y * CHUNK_HEIGHT, z * CHUNK_SIZE)
   self.world = world
 
-  self.blocks = {}
+  self.blocks = self.world.terrain:generateChunk(self.position.x, self.position.z)
 
   self.loaded = false
   self.dirty = true
-
-  for i = 1, CHUNK_SIZE do
-    self.blocks[i] = {}
-    for j = 1, CHUNK_HEIGHT do
-      self.blocks[i][j] = {}
-      for k = 1, CHUNK_SIZE do
-        local x, y, z = self.position.x + i, self.position.y + j, self.position.z + k
-
-        local n = love.math.noise(x/20, z/20, 0)
-        local s = math.sin(n * math.pi - math.pi / 2) * 0.5 + 0.5
-        local h = CHUNK_HEIGHT - math.floor(s * 20)
-        local c = math.floor(love.math.noise(x/8, y/4, z/8, 1)*2)
-
-        if j == h then
-          self.blocks[i][j][k] = 2
-        elseif j <= 4 then
-          self.blocks[i][j][k] = 1
-        elseif j < h and j > 16 then
-          self.blocks[i][j][k] = c * 3
-        elseif j < h and j <= 16 then
-          self.blocks[i][j][k] = c
-        else
-          self.blocks[i][j][k] = 0
-        end
-      end
-    end
-  end
 
   self.mesh = nil
 

@@ -10,7 +10,7 @@ local SPEED = 1000
 function Player:new(world)
   self.world = world
 
-  self.position = Vector(0, 30, 0)
+  self.position = Vector(0, 50, 0)
   self.velocity = Vector(0, 0, 0)
   self.accel = Vector(0, -GRAVITY, 0)
 
@@ -81,8 +81,6 @@ function Player:draw()
     debug("block", x, y, z)
     debug("chunk", chunk)
   end
-
-  debug("speed", self.speed)
 end
 
 function Player:handleInput(dt)

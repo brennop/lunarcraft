@@ -1,7 +1,7 @@
 Object = require "lib.classic"
 
 CHUNK_SIZE = 16
-CHUNK_HEIGHT = 32
+CHUNK_HEIGHT = 48
 
 local Player = require "src.player"
 

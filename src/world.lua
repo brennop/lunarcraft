@@ -1,12 +1,15 @@
 local bitser = require "lib.bitser"
+
 local Chunk = require "src.chunk"
+local Terrain = require "src.terrain"
 
 local World = {}
 
 function World:new()
   self.chunks = {}
+  self.terrain = Terrain()
 
-  self:load()
+  -- self:load()
 
   self._generated = false
 
