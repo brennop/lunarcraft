@@ -7,74 +7,6 @@ local cos, sin = math.cos, math.sin
 
 local w, h = 400, 300
 
-local vert = [[
-uniform mat4 projectionMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 modelMatrix;
-
-uniform mat4 shadowProjectionMatrix;
-uniform mat4 shadowViewMatrix;
-varying vec4 fragPosShadowSpace;
-
-attribute vec3 VertexNormal;
-
-varying vec3 vertexNormal;
-varying vec4 worldPosition;
-
-vec4 position( mat4 transform_projection, vec4 vertexPosition )
-{
-    worldPosition = modelMatrix * vertexPosition;
-
-    vertexNormal = VertexNormal;
-
-    fragPosShadowSpace = shadowProjectionMatrix * shadowViewMatrix * worldPosition;
-
-    return projectionMatrix * viewMatrix * worldPosition;
-}
-]]
-
-local pixel = [[
-uniform vec3 lightPos;
-
-uniform Image shadowMap;
-varying vec4 fragPosShadowSpace;
-
-varying vec3 vertexNormal;
-varying vec4 worldPosition;
-
-float calculateShadow(vec4 fragPosLightSpace) 
-{
-    // perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // transform to [0,1] range
-    projCoords = projCoords * 0.5 + 0.5;
-    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = Texel(shadowMap, projCoords.xy).r; 
-    // get depth of current fragment from light's perspective
-    float currentDepth = projCoords.z;
-    // check whether current frag pos is in shadow
-    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
-
-    return shadow;
-}
-
-vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
-{
-    vec3 lightDir = normalize(lightPos - worldPosition.xyz);
-    float diff = max(dot(vertexNormal, lightDir), 0.0) * 0.5 + 0.5;
-    float shadow = calculateShadow(fragPosShadowSpace);
-
-    // work arround while we don't calculate ambient light correctly
-    shadow = shadow * 0.5;
-
-    diff *= 1 - shadow;
-    vec4 light = vec4(diff, diff, diff, 1.0);
-
-    vec4 texturecolor = Texel(tex, texture_coords);
-    return texturecolor * color * light;
-}
-]]
-
 function Camera:new(world)
   self.position = Vector(0, CHUNK_HEIGHT + 2, 0)
   self.world = world
@@ -96,10 +28,11 @@ function Camera:new(world)
 
   self.drawDistance = 8
 
-  self.shader = love.graphics.newShader(pixel, vert)
-  self.light = Vector(16, 36, 20)
+  self.shader = love.graphics.newShader("shaders/camera.glsl")
+  self.light = Vector(16, 64, 20)
 
   self.shadowMap = love.graphics.newCanvas(1280, 1280,  { format = "depth24", readable = true })
+  self.shadowMap:setWrap("clamp")
   self.shadowShader = love.graphics.newShader("shaders/depthShader.glsl")
 
   self.shadowProjection = Matrix()
@@ -107,7 +40,6 @@ function Camera:new(world)
 
   local k = 32
   self.shadowProjection:ortho(-k, k, -k, k, 1, 100)
-  self.shadowView:lookAt(Vector(16, 64, 20), Vector(0, 0, 0), Vector(0, 1, 0))
 
   self.debugShadowMapShader = love.graphics.newShader([[
 vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
@@ -148,6 +80,10 @@ end
 
 function Camera:updateView()
   self.view:lookAt(self.position, self.position - self.forward, self.up)
+
+  local pCenter = Vector(self.position.x, 0, self.position.z)
+  local lightPos = self.light + pCenter
+  self.shadowView:lookAt(lightPos, pCenter, Vector(0, 1, 0))
 end
 
 function Camera:updateDirection(dx, dy)
@@ -173,9 +109,6 @@ end
 
 function Camera:update()
   self:updateView()
-
-  -- rotate sunlight
-  -- self.light = self.light:rotated(love.timer.getTime() * 0.1)
 end
 
 function Camera:drawWorld()
@@ -184,8 +117,8 @@ function Camera:drawWorld()
       local px, py = x + self.position.x, z + self.position.z
 
       local chunk = self.world:getChunk(px, py)
-      if chunk then 
-        chunk:draw() 
+      if chunk then
+        chunk:draw()
       end
     end
   end
@@ -200,6 +133,7 @@ function Camera:drawShadowMap()
   love.graphics.setCanvas({ depthstencil = self.shadowMap })
   love.graphics.clear(1, 0, 0)
   love.graphics.setDepthMode("lequal", true)
+  love.graphics.setMeshCullMode("front")
 
   self:drawWorld()
 
@@ -212,7 +146,7 @@ function Camera:draw()
   self:drawShadowMap()
 
   love.graphics.setDepthMode("lequal", true)
-  love.graphics.setMeshCullMode("back")
+  love.graphics.setMeshCullMode("none")
   love.graphics.setShader(self.shader)
 
   self.shader:send("lightPos", { self.light.x, self.light.z, self.light.y })
@@ -227,9 +161,9 @@ function Camera:draw()
 
   love.graphics.setShader()
 
-  -- love.graphics.setShader(self.debugShadowMapShader)
-  -- love.graphics.draw(self.shadowMap, 0, 0, 0, 0.5, 0.5)
-  -- love.graphics.setShader()
+--   love.graphics.setShader(self.debugShadowMapShader)
+--   love.graphics.draw(self.shadowMap, 0, 0, 0, 0.5, 0.5)
+--   love.graphics.setShader()
 end
 
 function Camera:hit()
