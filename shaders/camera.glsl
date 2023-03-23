@@ -42,22 +42,22 @@ float calculateShadow(vec4 fragPosLightSpace, float lightDot)
     float currentDepth = projCoords.z;
 
     // check whether current frag pos is in shadow
-    float bias = max(0.002 * (1.0 - lightDot), 0.005);
+    float bias = 0;
     float shadow = 0;
 
      // TODO: use textureSize instead of hardcode resolution
     vec2 texelSize = vec2(1.0 / 2048.0, 1.0 / 2048.0);
 
-    for(int x = -1; x <= 1; ++x)
+    for(int x = -2; x <= 2; ++x)
     {
-      for(int y = -1; y <= 1; ++y)
+      for(int y = -2; y <= 2; ++y)
       {
         float pcfDepth = Texel(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
         shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
       }
     }
 
-    shadow /= 9.0;
+    shadow /= 25.0;
 
     if (projCoords.z > 1.0)
       shadow = 0.0;
@@ -71,13 +71,14 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
     float lightDot = dot(vertexNormal, lightDir);
 
     float diff = max(lightDot, 0.0) + 0.5;
-    float shadow = calculateShadow(fragPosShadowSpace, lightDot);
+    float shadow = 1.0 - calculateShadow(fragPosShadowSpace, lightDot);
 
-    vec3 lightColor = vec3(0.5);
+    vec3 lightColor = vec3(0.7, 0.8, 0.65);
+
     vec3 ambient = 0.5 * lightColor;
     vec3 diffuse = diff * lightColor;
 
-    vec4 light = vec4(diffuse * (1.0 - shadow) + ambient, 1.0);
+    vec4 light = vec4(ambient + diffuse * shadow, 1.0);
 
     vec4 texturecolor = Texel(tex, texture_coords);
     return texturecolor * color * light;

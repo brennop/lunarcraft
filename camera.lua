@@ -34,6 +34,7 @@ function Camera:new(world)
 
   self.shadowMap = love.graphics.newCanvas(shadowMapResolution, shadowMapResolution,  { format = "depth24", readable = true })
   self.shadowMap:setWrap("clamp")
+  self.shadowMap:setFilter("linear", "linear")
   self.shadowShader = love.graphics.newShader("shaders/depthShader.glsl")
 
   self.shadowProjection = Matrix()
@@ -135,8 +136,9 @@ function Camera:drawShadowMap()
 
   love.graphics.setCanvas({ depthstencil = self.shadowMap })
   love.graphics.clear(1, 0, 0)
+
   love.graphics.setDepthMode("lequal", true)
-  love.graphics.setMeshCullMode("front")
+  love.graphics.setMeshCullMode("back")
 
   self:drawWorld()
 
