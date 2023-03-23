@@ -3,8 +3,7 @@ Object = require "lib.classic"
 CHUNK_SIZE = 16
 CHUNK_HEIGHT = 32
 
-local Matrix = require "matrix"
-local Player = require "player"
+local Player = require "src.player"
 
 _debug = {}
 function debug(...)
@@ -32,9 +31,6 @@ function love.keypressed(key)
 end
 
 function love.load()
-  -- love.graphics.setDepthMode("lequal", true)
-  -- love.graphics.setMeshCullMode("back")
-
   love.mouse.setRelativeMode(true)
   love.graphics.setDefaultFilter("nearest", "nearest")
 
@@ -44,7 +40,7 @@ function love.load()
 
   love.graphics.setBackgroundColor(0.65, 0.6, 0.95)
 
-  local World = require "world"
+  local World = require "src.world"
 
   world = World:new()
 

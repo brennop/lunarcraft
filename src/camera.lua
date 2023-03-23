@@ -1,7 +1,7 @@
 local Camera = Object:extend()
 
-local Vector = require "vector"
-local Matrix = require "matrix"
+local Vector = require "src.vector"
+local Matrix = require "src.matrix"
 
 local cos, sin = math.cos, math.sin
 

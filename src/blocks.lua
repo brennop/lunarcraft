@@ -1,7 +1,4 @@
-local Vector = require "vector"
-local Matrix = require "matrix"
-
-local cube = require "cube"
+local cube = require "src.cube"
 
 blockTypes = {
   -- 1: cobblestone

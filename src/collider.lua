@@ -1,4 +1,4 @@
-local Vector = require "vector"
+local Vector = require "src.vector"
 
 local Collider = Object:extend()
 

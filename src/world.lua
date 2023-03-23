@@ -1,5 +1,5 @@
 local bitser = require "lib.bitser"
-local Chunk = require "chunk"
+local Chunk = require "src.chunk"
 
 local World = {}
 
@@ -10,7 +10,7 @@ function World:new()
 
   self._generated = false
 
-  self.thread = love.thread.newThread("load_mesh.lua")
+  self.thread = love.thread.newThread("src/load_mesh.lua")
 
   return self
 end

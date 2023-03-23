@@ -1,8 +1,8 @@
 local Chunk = Object:extend()
 
-local blockTypes = require "blocks"
-local Vector = require "vector"
-local Matrix = require "matrix"
+local blockTypes = require "src.blocks"
+local Vector = require "src.vector"
+local Matrix = require "src.matrix"
 
 -- TODO: use less memory for the vertex
 local format = {

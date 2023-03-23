@@ -1,6 +1,6 @@
-local Vector = require "vector"
-local Camera = require "camera"
-local Collider = require "collider"
+local Vector = require "src.vector"
+local Camera = require "src.camera"
+local Collider = require "src.collider"
 
 local Player = Object:extend()
 

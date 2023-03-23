@@ -4,7 +4,7 @@ local CHUNK_HEIGHT = 32
 
 local position, blocks, channel, blockTypes = ...
 
-local getVertex = require "mesh"
+local getVertex = require "src.mesh"
 
 local function getBlock(i, j, k)
   return blocks[i][j][k]
