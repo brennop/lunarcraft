@@ -15,6 +15,8 @@ function World:new()
 
   self.thread = love.thread.newThread("src/load_mesh.lua")
 
+  self:loadChunk(0, 0)
+
   return self
 end
 

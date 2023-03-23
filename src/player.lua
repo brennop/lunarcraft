@@ -10,7 +10,7 @@ local SPEED = 1000
 function Player:new(world)
   self.world = world
 
-  self.position = Vector(0, 50, 0)
+  self.position = Vector(-8, 50, -8)
   self.velocity = Vector(0, 0, 0)
   self.accel = Vector(0, -GRAVITY, 0)
 

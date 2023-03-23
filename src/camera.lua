@@ -40,7 +40,7 @@ function Camera:new(world)
   self.shadowProjection = Matrix()
   self.shadowView = Matrix()
 
-  local k = 48
+  local k = 80
   self.shadowProjection:ortho(-k, k, -k, k, 1, 100)
 
   self.debugShadowMapShader = love.graphics.newShader([[
@@ -167,7 +167,7 @@ function Camera:draw()
   love.graphics.setShader()
 
   -- love.graphics.setShader(self.debugShadowMapShader)
-  -- love.graphics.draw(self.shadowMap, 0, 0, 0, 0.5, 0.5)
+  -- love.graphics.draw(self.shadowMap, 0, 0, 0, 0.25, 0.25)
   -- love.graphics.setShader()
 end
 
