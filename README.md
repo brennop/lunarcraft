@@ -2,7 +2,7 @@
 
 Voxel engine implemented in lua with love2d.
 
-![1679350514](https://user-images.githubusercontent.com/38540987/226477803-a19ff16a-b4cd-4a8e-8f61-11d98b763ebd.png)
+![1679603888](https://user-images.githubusercontent.com/38540987/227351911-03999f48-59f5-43f7-a976-b19247b1cc91.png)
 
 # resources
 
