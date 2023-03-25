@@ -2,24 +2,36 @@
 local CHUNK_SIZE = 16
 local CHUNK_HEIGHT = 48
 
-local position, blocks, channel, blockTypes = ...
+local position, blocks, channel, blockTypes, data = ...
 
 local getVertex = require "src.mesh"
+
+local ffi = require "ffi"
+
+ffi.cdef [[
+typedef struct {
+  float x, y, z;
+  float u, v;
+  float nx, ny, nz;
+  unsigned char r, g, b, a;
+} ck_vertex;
+]]
 
 local function getBlock(i, j, k)
   return blocks[i][j][k]
 end
 
 function getMesh()
-  local vertices = {}
-  local vi = 1
+  local pointer = ffi.cast('ck_vertex*', data:getFFIPointer())
+
+  local vi = 0
 
   function setFace(index, mesh, x, y, z, value)
     for i = 1, 6 do
-      local vertexData = getVertex(index, i, mesh, x, y, z, value, getBlock)
+      local vertex = pointer[vi]
+      local vertexData = setVertex(index, i, mesh, x, y, z, value, getBlock, vertex)
 
       if vertexData then
-        vertices[vi] = vertexData
         vi = vi + 1
       end
     end
@@ -41,7 +53,7 @@ function getMesh()
     end
   end
 
-  love.thread.getChannel(channel):supply(vertices)
+  love.thread.getChannel(channel):supply(vi)
 end
 
 getMesh()

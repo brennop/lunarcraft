@@ -6,10 +6,10 @@ local Matrix = require "src.matrix"
 
 -- TODO: use less memory for the vertex
 local format = {
-  { "VertexPosition", "float", 3 },
-  { "VertexTexCoord", "float", 2 },
-  { "VertexNormal", "float", 3 },
-  { "VertexColor", "byte", 4 },
+  { "VertexPosition", "float", 3 }, -- 12 bytes
+  { "VertexTexCoord", "float", 2 }, -- 8 bytes
+  { "VertexNormal", "float", 3 },   -- 12 bytes
+  { "VertexColor", "byte", 4 },     -- 4 bytes
 }
 
 local maxVertices = CHUNK_SIZE * CHUNK_HEIGHT * CHUNK_SIZE * 6 * 6
@@ -31,6 +31,7 @@ function Chunk:new(x, y, z, world)
   self.model[12] = self.position.z
 
   self.channel = self:__tostring()
+
 end
 
 function Chunk:__tostring()
@@ -54,6 +55,9 @@ end
 function Chunk:load(thread)
   self.dirty = false
 
+  -- each vertex is currently 36 bytes
+  self.verticesData = love.data.newByteData(maxVertices * 36)
+
   local blocks = {}
   for i = 0, CHUNK_SIZE + 1 do
     blocks[i] = {}
@@ -66,7 +70,7 @@ function Chunk:load(thread)
     end
   end
 
-  thread:start(self.position:table(), blocks, self.channel, blockTypes)
+  thread:start(self.position:table(), blocks, self.channel, blockTypes, self.verticesData)
 end
 
 function Chunk:getBlock(x, y, z)
@@ -97,11 +101,15 @@ function Chunk:update()
   local message = love.thread.getChannel(self.channel):pop()
 
   if message then
-    local vertices = message
+    local numVertices = message
+
     if self.mesh then self.mesh:release() end
 
-    self.mesh = love.graphics.newMesh(format, vertices, "triangles", "static")
+    self.mesh = love.graphics.newMesh(format, numVertices, "triangles", "static")
     self.mesh:setTexture(tileset)
+    self.mesh:setVertices(self.verticesData, 1, numVertices)
+
+    self.verticesData:release()
   end
 end
 

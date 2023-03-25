@@ -15,9 +15,7 @@ function sign(value)
   end
 end
 
-function getVertex(index, i, mesh, x, y, z, value, getBlock)
-  local vertexData = nil
-
+function setVertex(index, i, mesh, x, y, z, value, getBlock, outVertex)
   local block = getBlock(x, y, z)
 
   if (value == 0 or (value == 4 and block ~= 4)) and mesh then
@@ -53,19 +51,17 @@ function getVertex(index, i, mesh, x, y, z, value, getBlock)
       state = 4 - side1 - side2 - corner
     end
 
-    s = shading[state]
+    s = shading[state] * 255
 
-    vertexData = {
-      vx + x, vy + y, vz + z,
-      u, v,
-      nx, ny, nz,
-      s, s, s, alpha
-    }
+    outVertex.x, outVertex.y, outVertex.z = vx + x, vy + y, vz + z
+    outVertex.u, outVertex.v = u, v
+    outVertex.nx, outVertex.ny, outVertex.nz = nx, ny, nz
+    outVertex.r, outVertex.g, outVertex.b, outVertex.a = s, s, s, alpha * 255
+
+    return true
   end
 
-  local vi = i + (index)*6 + (x-1)*6*6 + (y-1)*6*6*CHUNK_SIZE + (z-1)*6*6*CHUNK_SIZE*CHUNK_HEIGHT
-
-  return vertexData
+  return false
 end
 
-return getVertex
+return setVertex
