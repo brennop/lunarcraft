@@ -58,6 +58,7 @@ function Chunk:load(thread)
   -- each vertex is currently 36 bytes
   self.verticesData = love.data.newByteData(maxVertices * 36)
 
+  -- add 1 to the size to include the border
   local blocks = {}
   for i = 0, CHUNK_SIZE + 1 do
     blocks[i] = {}
@@ -77,11 +78,9 @@ function Chunk:getBlock(x, y, z)
   if y < 1 or y > CHUNK_HEIGHT then return 0 end
 
   -- translate to local coordinates
-  x = x - self.position.x
-  y = y - self.position.y
-  z = z - self.position.z
+  local i, j, k = x - self.position.x, y - self.position.y, z - self.position.z
 
-  return self.blocks[x][y][z]
+  return self.blocks[i][j][k]
 end
 
 function Chunk:setBlock(x, y, z, block)
@@ -95,6 +94,23 @@ function Chunk:setBlock(x, y, z, block)
   self.blocks[i][j][k] = block
 
   self.dirty = true
+
+  -- if border block, mark adjacent chunks as dirty
+  local adjacentX, adjacentZ
+  if i == 1 then
+    adjacentX = self.world:getChunk(x - 1, z)
+  elseif i == CHUNK_SIZE then
+    adjacentX = self.world:getChunk(x + 1, z)
+  end
+
+  if k == 1 then
+    adjacentZ = self.world:getChunk(x, z - 1)
+  elseif k == CHUNK_SIZE then
+    adjacentZ = self.world:getChunk(x, z + 1)
+  end
+
+  if adjacentX then adjacentX.dirty = true end
+  if adjacentZ then adjacentZ.dirty = true end
 end
 
 function Chunk:update()

@@ -69,12 +69,6 @@ end
 function Player:draw()
   self.camera:draw()
 
-  if self.nextBlock then
-    local x, y, z = self.nextBlock:unpack()
-    local block = self.world:getBlock(x, y, z)
-    debug("light", block)
-  end
-
   if self.currentBlock then
     local x, y, z = self.currentBlock:unpack()
     local chunk = self.world:getChunk(x, z)

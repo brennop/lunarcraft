@@ -11,9 +11,11 @@ function World:new()
 
   -- self:load()
 
-  self._generated = false
+  self.threads = {}
 
-  self.thread = love.thread.newThread("src/load_mesh.lua")
+  for i = 1, 4 do
+    self.threads[i] = love.thread.newThread("src/load_mesh.lua")
+  end
 
   self:loadChunk(0, 0)
 
@@ -31,6 +33,16 @@ function World:save()
   bitser.dumpLoveFile("world.dat", chunks)
 end
 
+function World:getThread()
+  for _, thread in pairs(self.threads) do
+    if thread:isRunning() == false then
+      return thread
+    end
+  end
+
+  return nil
+end
+
 function World:load()
   local chunks = bitser.loadLoveFile("world.dat")
 
@@ -46,11 +58,6 @@ function World:load()
 end
 
 function World:generateChunk(wx, wz)
-  if self._generated then return end
-
-  -- only allow one chunk to be generated at a time
-  self._generated = true
-
   local x = math.floor((wx-1) / CHUNK_SIZE)
   local z = math.floor((wz-1) / CHUNK_SIZE)
 
@@ -108,21 +115,22 @@ function World:loadChunk(x, z)
 
   if chunk then
     chunk.loaded = true
-
-    if chunk.dirty and not self.thread:isRunning() then
-      chunk:load(self.thread)
-    end
   else
     self:generateChunk(x, z)
   end
 end
 
 function World:update(dt)
-  self._generated = false
-
   for i, v in pairs(self.chunks) do
     for j, chunk in pairs(v) do
       if chunk.loaded then
+
+        if chunk.dirty then
+          local thread = self:getThread()
+
+          if thread then chunk:load(thread) end
+        end
+
         chunk:update(dt)
       end
 
