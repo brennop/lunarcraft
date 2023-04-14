@@ -19,10 +19,6 @@ function World:new()
 
   self:loadChunk(0, 0)
 
-  self.done = nil
-  self._doneStart = love.timer.getTime()
-  self._doneCounter = 0
-
   return self
 end
 
@@ -125,16 +121,12 @@ function World:loadChunk(x, z)
 end
 
 function World:update(dt)
-  local _isAnyChunkDirty = false
-
   for i, v in pairs(self.chunks) do
     for j, chunk in pairs(v) do
       if chunk.loaded then
 
         if chunk.dirty then
           local thread = self:getThread()
-
-          _isAnyChunkDirty = true
 
           if thread then chunk:load(thread) end
         end
@@ -144,21 +136,6 @@ function World:update(dt)
 
       chunk.loaded = false
     end
-  end
-
-  if _isAnyChunkDirty == false then
-    if not self.done then
-      self._doneCounter = self._doneCounter + 1
-    end
-
-    if self._doneCounter > 10 and not self.done then
-      self.done = love.timer.getTime() - self._doneStart
-
-      print("World loaded in " .. self.done .. " seconds")
-    end
-  else
-    self.done = nil
-    self._doneCounter = 0
   end
 end
 

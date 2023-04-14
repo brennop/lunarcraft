@@ -32,6 +32,7 @@ function Chunk:new(x, y, z, world)
 
   self.channel = self:__tostring()
 
+  self.done = nil
 end
 
 function Chunk:__tostring()
@@ -41,6 +42,7 @@ function Chunk:__tostring()
 end
 
 function Chunk:load(thread)
+  self.doneStart = love.timer.getTime()
   self.dirty = false
 
   -- each vertex is currently 36 bytes
@@ -106,6 +108,10 @@ function Chunk:update()
 
   if message then
     local numVertices = message
+
+    self.done = love.timer.getTime() - self.doneStart
+    print("Chunk done in "..self.done.." seconds")
+
     if numVertices == 0 then return end
 
     if self.mesh then self.mesh:release() end
