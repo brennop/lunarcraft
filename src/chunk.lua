@@ -40,18 +40,6 @@ function Chunk:__tostring()
   return "Chunk: "..nx..", "..nz
 end
 
-function Chunk.encodeIndex(i, j, k)
-  return i + (j-1) * CHUNK_SIZE + (k-1) * CHUNK_SIZE * CHUNK_HEIGHT
-end
-
-function Chunk.decodeIndex(index)
-  local i = (index - 1) % CHUNK_SIZE + 1
-  local j = math.floor((index - 1) / CHUNK_SIZE) % CHUNK_HEIGHT + 1
-  local k = math.floor((index - 1) / (CHUNK_SIZE * CHUNK_HEIGHT)) % CHUNK_SIZE + 1
-
-  return i, j, k
-end
-
 function Chunk:load(thread)
   self.dirty = false
 
@@ -118,6 +106,7 @@ function Chunk:update()
 
   if message then
     local numVertices = message
+    if numVertices == 0 then return end
 
     if self.mesh then self.mesh:release() end
 
