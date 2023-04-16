@@ -126,6 +126,8 @@ function Camera:drawWorld()
       end
     end
   end
+
+  self.world:draw()
 end
 
 function Camera:drawShadowMap()
