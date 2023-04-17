@@ -143,13 +143,21 @@ function World:update(dt)
 end
 
 function World:draw()
+  local shader = love.graphics.getShader()
+
   for _, mesh in ipairs(self.opaqueMeshes) do
-    love.graphics.getShader():send("modelMatrix", mesh.model)
+    shader:send("modelMatrix", mesh.model)
+    if shader:hasUniform("shouldAnimate") then
+      shader:send("shouldAnimate", false)
+    end
     love.graphics.draw(mesh.mesh)
   end
 
   for _, mesh in ipairs(self.transparentMeshes) do
-    love.graphics.getShader():send("modelMatrix", mesh.model)
+    shader:send("modelMatrix", mesh.model)
+    if shader:hasUniform("shouldAnimate") then
+      shader:send("shouldAnimate", true)
+    end
     love.graphics.draw(mesh.mesh)
   end
 
