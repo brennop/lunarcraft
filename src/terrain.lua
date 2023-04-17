@@ -109,6 +109,23 @@ function Terrain:addTrees(blocks)
   end
 end
 
+function Terrain:carveCaves(blocks)
+  for i = 1, CHUNK_SIZE do
+    for j = 1, CHUNK_HEIGHT do
+      for k = 1, CHUNK_SIZE do
+        local noise = love.math.noise(i * 0.1, j * 0.1, k * 0.1)
+        local height = self.heightMap[i][k]
+
+        -- local caveThreshold = j / CHUNK_HEIGHT * 0.3 + 0.4
+
+        if noise > 0.6 then
+          blocks[i][j][k] = 0
+        end
+      end
+    end
+  end
+end
+
 function Terrain:generateChunk(wx, wz)
   local blocks = {}
 
@@ -120,10 +137,12 @@ function Terrain:generateChunk(wx, wz)
       blocks[i][j] = {}
       for k = 1, CHUNK_SIZE do
         local height = self.heightMap[i][k]
+        local noise = love.math.noise(i * 0.1, j * 0.1, k * 0.1)
+        local stoneThreshold = 24 + noise * 12
 
         if j == height then
           blocks[i][j][k] = 2
-        elseif j < height and j > 16 then
+        elseif j < height and j > stoneThreshold then
           blocks[i][j][k] = 3
         elseif j < height then
           blocks[i][j][k] = 1
@@ -134,8 +153,17 @@ function Terrain:generateChunk(wx, wz)
     end
   end
 
+  self:carveCaves(blocks)
+
   self:addWater(blocks)
   self:addTrees(blocks)
+
+  -- set bottom layer to bedrock
+  for i = 1, CHUNK_SIZE do
+    for k = 1, CHUNK_SIZE do
+      blocks[i][1][k] = 1
+    end
+  end
 
   return blocks
 end
