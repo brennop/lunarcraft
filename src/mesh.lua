@@ -2,7 +2,7 @@
 local CHUNK_SIZE = 16
 local CHUNK_HEIGHT = 48
 
-local position, blocks, channel, blockTypes, oData, tData = ...
+local position, blocks, channel, blockTypes, dataTable = ...
 
 local ffi = require "ffi"
 
@@ -119,5 +119,5 @@ function getMesh(opaque, data)
   love.thread.getChannel(channel .. channelSuffix):supply(vi)
 end
 
-getMesh(true, oData)
-getMesh(false, tData)
+getMesh(true, dataTable.opaque)
+getMesh(false, dataTable.transparent)

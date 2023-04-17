@@ -19,6 +19,7 @@ function World:new()
 
   self:loadChunk(0, 0)
 
+  self.opaqueMeshes = {}
   self.transparentMeshes = {}
 
   return self
@@ -142,11 +143,17 @@ function World:update(dt)
 end
 
 function World:draw()
-  for i, data in pairs(self.transparentMeshes) do
-    love.graphics.getShader():send("modelMatrix", data.model)
-    love.graphics.draw(data.mesh)
+  for _, mesh in ipairs(self.opaqueMeshes) do
+    love.graphics.getShader():send("modelMatrix", mesh.model)
+    love.graphics.draw(mesh.mesh)
   end
 
+  for _, mesh in ipairs(self.transparentMeshes) do
+    love.graphics.getShader():send("modelMatrix", mesh.model)
+    love.graphics.draw(mesh.mesh)
+  end
+
+  self.opaqueMeshes = {}
   self.transparentMeshes = {}
 end
 
