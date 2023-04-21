@@ -1,6 +1,8 @@
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
+uniform float time;
+uniform bool shouldAnimate;
 
 uniform vec3 lightPos;
 uniform Image shadowMap;
@@ -12,13 +14,24 @@ varying vec4 fragPosShadowSpace;
 varying vec3 vertexNormal;
 varying vec4 worldPosition;
 
-
 #ifdef VERTEX
 attribute vec3 VertexNormal;
+
+const float TIMESCALE = 1.5;
 
 vec4 position( mat4 transform_projection, vec4 vertexPosition )
 {
     worldPosition = modelMatrix * vertexPosition;
+
+    if (shouldAnimate) {
+      // use time and sin to animate vertex y
+      float y = worldPosition.y 
+        + sin(time * TIMESCALE + worldPosition.x) * 0.1
+        + cos(time * TIMESCALE + worldPosition.z) * 0.08;
+
+      worldPosition.y = y;
+    }
+
 
     vertexNormal = VertexNormal;
 

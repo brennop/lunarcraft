@@ -126,6 +126,8 @@ function Camera:drawWorld()
       end
     end
   end
+
+  self.world:draw()
 end
 
 function Camera:drawShadowMap()
@@ -133,6 +135,7 @@ function Camera:drawShadowMap()
 
   self.shadowShader:send("viewMatrix", self.shadowView)
   self.shadowShader:send("projectionMatrix", self.shadowProjection)
+  -- self.shadowShader:send("time", love.timer.getTime())
 
   love.graphics.setCanvas({ depthstencil = self.shadowMap })
   love.graphics.clear(1, 0, 0)
@@ -157,6 +160,7 @@ function Camera:draw()
   self.shader:send("lightPos", { self.light.x, self.light.z, self.light.y })
   self.shader:send("viewMatrix", self.view)
   self.shader:send("projectionMatrix", self.projection)
+  self.shader:send("time", love.timer.getTime())
 
   self.shader:send("shadowViewMatrix", self.shadowView)
   self.shader:send("shadowProjectionMatrix", self.shadowProjection)

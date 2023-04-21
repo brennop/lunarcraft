@@ -14,10 +14,13 @@ function World:new()
   self.threads = {}
 
   for i = 1, 4 do
-    self.threads[i] = love.thread.newThread("src/load_mesh.lua")
+    self.threads[i] = love.thread.newThread("src/mesh.lua")
   end
 
   self:loadChunk(0, 0)
+
+  self.opaqueMeshes = {}
+  self.transparentMeshes = {}
 
   return self
 end
@@ -140,11 +143,26 @@ function World:update(dt)
 end
 
 function World:draw()
-  for i, v in pairs(self.chunks) do
-    for j, chunk in pairs(v) do
-      chunk:draw()
+  local shader = love.graphics.getShader()
+
+  for _, mesh in ipairs(self.opaqueMeshes) do
+    shader:send("modelMatrix", mesh.model)
+    if shader:hasUniform("shouldAnimate") then
+      shader:send("shouldAnimate", false)
     end
+    love.graphics.draw(mesh.mesh)
   end
+
+  for _, mesh in ipairs(self.transparentMeshes) do
+    shader:send("modelMatrix", mesh.model)
+    if shader:hasUniform("shouldAnimate") then
+      shader:send("shouldAnimate", true)
+    end
+    love.graphics.draw(mesh.mesh)
+  end
+
+  self.opaqueMeshes = {}
+  self.transparentMeshes = {}
 end
 
 return World
