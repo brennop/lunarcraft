@@ -71,13 +71,11 @@ return function(textures, config)
         vertices[vertex][3] * 0.5,
         u + uvs[uv][1] * step,
         v + uvs[uv][2] * step,
-        normals[normal]
+        normals[normal],
+        alpha
       }
     end
   end
-
-  cube.alpha = alpha
-  cube.opaque = alpha == 1
 
   return cube
 end

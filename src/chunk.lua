@@ -23,10 +23,7 @@ function Chunk:new(x, y, z, world)
   self.loaded = false
   self.dirty = true
 
-  self.meshes = {
-    opaque = nil,
-    transparent = nil
-  }
+  self.mesh = nil
 
   self.model = Matrix()
   self.model[4] = self.position.x
@@ -34,6 +31,7 @@ function Chunk:new(x, y, z, world)
   self.model[12] = self.position.z
 
   self.channel = self:__tostring()
+
 end
 
 function Chunk:__tostring()
@@ -58,11 +56,7 @@ function Chunk:load(thread)
   self.dirty = false
 
   -- each vertex is currently 36 bytes
-  self.verticeData = {
-    opaque = love.data.newByteData(maxVertices * 36),
-    -- we assume transparent vertices are way less than opaque ones
-    transparent = love.data.newByteData(maxVertices * 36 * 0.5), 
-  }
+  self.verticesData = love.data.newByteData(maxVertices * 36)
 
   -- add 1 to the size to include the border
   local blocks = {}
@@ -77,7 +71,7 @@ function Chunk:load(thread)
     end
   end
 
-  thread:start(self.position:table(), blocks, self.channel, blockTypes, self.verticeData)
+  thread:start(self.position:table(), blocks, self.channel, blockTypes, self.verticesData)
 end
 
 function Chunk:getBlock(x, y, z)
@@ -120,35 +114,25 @@ function Chunk:setBlock(x, y, z, block)
 end
 
 function Chunk:update()
-  for _, suffix in ipairs { "opaque", "transparent" } do
-    local message = love.thread.getChannel(self.channel .. suffix):pop()
+  local message = love.thread.getChannel(self.channel):pop()
 
-    if message then
-      local numVertices = message
+  if message then
+    local numVertices = message
 
-      if numVertices == 0 then return end
+    if self.mesh then self.mesh:release() end
 
-      if self.meshes[suffix] then
-        self.meshes[suffix]:release()
-      end
+    self.mesh = love.graphics.newMesh(format, numVertices, "triangles", "static")
+    self.mesh:setTexture(tileset)
+    self.mesh:setVertices(self.verticesData, 1, numVertices)
 
-      self.meshes[suffix] = love.graphics.newMesh(format, numVertices, "triangles", "static")
-      self.meshes[suffix]:setTexture(tileset)
-      self.meshes[suffix]:setVertices(self.verticeData[suffix], 1, numVertices)
-
-      self.verticeData[suffix]:release()
-    end
+    self.verticesData:release()
   end
 end
 
 function Chunk:draw()
-  -- FIXME: passing model twice wastes memory
-  if self.meshes.opaque then
-    table.insert(self.world.opaqueMeshes, { mesh = self.meshes.opaque, model = self.model })
-  end
-
-  if self.meshes.transparent then
-    table.insert(self.world.transparentMeshes, { mesh = self.meshes.transparent, model = self.model })
+  if self.mesh then 
+    love.graphics.getShader():send("modelMatrix", self.model)
+    love.graphics.draw(self.mesh)
   end
 end
 
