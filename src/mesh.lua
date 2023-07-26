@@ -18,9 +18,11 @@ end
 function setVertex(index, i, mesh, x, y, z, value, getBlock, outVertex)
   local block = getBlock(x, y, z)
 
-  if (value == 0 or (value == 4 and block ~= 4)) and mesh then
-    local vertex = mesh[index*6+i]
-    local vx, vy, vz, u, v, normal, alpha = unpack(vertex)
+  if not mesh then return false end
+
+  local vertex = mesh[index*6+i]
+  local vx, vy, vz, u, v, normal, alpha = unpack(vertex)
+  if (value == 0 or (value == 4 and block ~= value)) and mesh then
 
     local dx, dy, dz = sign(vx), sign(vy), sign(vz)
     local nx, ny, nz = normal[1], normal[2], normal[3]
