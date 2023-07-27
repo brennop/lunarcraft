@@ -66,8 +66,7 @@ float calculateShadow(vec4 fragPosLightSpace, float lightDot)
 }
 
 
-// bayer dithering matrix
-const mat2 bayerMatrix = mat2(1.0, 3.0, 4.0, 2.0) / 5.0;
+uniform Image bayer;
 
 vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
 {
@@ -87,11 +86,13 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
     vec4 texturecolor = Texel(tex, texture_coords);
     vec4 f = texturecolor * color * light;
     float alpha = f.a;
-    float dither = bayerMatrix[int(mod(screen_coords.x, 2.0))]
-                              [int(mod(screen_coords.y, 2.0))];
+
+    vec2 ditherIndex = vec2(mod(screen_coords.x, 8.0), mod(screen_coords.y, 8.0));
+    float dither = Texel(bayer, ditherIndex / 8.0).r;
 
     if (dither > alpha)
       discard;
+
     f.a = 1.0;
     return f;
 }
