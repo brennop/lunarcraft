@@ -65,6 +65,9 @@ float calculateShadow(vec4 fragPosLightSpace, float lightDot)
     return shadow;
 }
 
+
+uniform Image bayer;
+
 vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
 {
     vec3 lightDir = normalize(lightPos - worldPosition.xyz);
@@ -81,6 +84,16 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
     vec4 light = vec4(ambient + diffuse * shadow, 1.0);
 
     vec4 texturecolor = Texel(tex, texture_coords);
-    return texturecolor * color * light;
+    vec4 f = texturecolor * color * light;
+    float alpha = f.a;
+
+    vec2 ditherIndex = vec2(mod(screen_coords.x, 8.0), mod(screen_coords.y, 8.0));
+    float dither = Texel(bayer, ditherIndex / 8.0).r;
+
+    if (dither > alpha)
+      discard;
+
+    f.a = 1.0;
+    return f;
 }
 #endif

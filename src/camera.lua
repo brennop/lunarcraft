@@ -8,6 +8,17 @@ local cos, sin = math.cos, math.sin
 local w, h = 400, 300
 local shadowMapResolution = 2048
 
+local bayer = {
+  {0, 32, 8, 40, 2, 34, 10, 42},
+  {48, 16, 56, 24, 50, 18, 58, 26},
+  {12, 44, 4, 36, 14, 46, 6, 38},
+  {60, 28, 52, 20, 62, 30, 54, 22},
+  {3, 35, 11, 43, 1, 33, 9, 41},
+  {51, 19, 59, 27, 49, 17, 57, 25},
+  {15, 47, 7, 39, 13, 45, 5, 37},
+  {63, 31, 55, 23, 61, 29, 53, 21},
+}
+
 function Camera:new(world)
   self.position = Vector(0, CHUNK_HEIGHT + 2, 0)
   self.world = world
@@ -43,18 +54,19 @@ function Camera:new(world)
   local k = 80
   self.shadowProjection:ortho(-k, k, -k, k, 1, 100)
 
-  self.debugShadowMapShader = love.graphics.newShader([[
-vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
-{
-    float v = Texel(tex, texture_coords).r;
-    return vec4(v, v, v, 1.0);
-}
-  ]])
-
   self:updateDirection(0,0)
   self:updateProjection(self.fov)
   self:updateView()
 
+  local bayerData = love.image.newImageData(8, 8, "r8")
+  for y = 1, 8 do
+    for x = 1, 8 do
+      local value = bayer[y][x] / 64
+      bayerData:setPixel(x - 1, y - 1, value, value, value, 1)
+    end
+  end
+  self.bayer = love.graphics.newImage(bayerData)
+  self.shader:send("bayer", self.bayer)
 end
 
 function Camera:updateProjection(_fov)
@@ -165,10 +177,6 @@ function Camera:draw()
   self:drawWorld()
 
   love.graphics.setShader()
-
-  -- love.graphics.setShader(self.debugShadowMapShader)
-  -- love.graphics.draw(self.shadowMap, 0, 0, 0, 0.25, 0.25)
-  -- love.graphics.setShader()
 end
 
 function Camera:hit()
