@@ -17,6 +17,11 @@ function sign(value)
   end
 end
 
+local translucent = {
+  [4] = true,
+  [7] = true,
+}
+
 function setVertex(index, i, mesh, x, y, z, value, getBlock, outVertex)
   local block = getBlock(x, y, z)
 
@@ -24,10 +29,8 @@ function setVertex(index, i, mesh, x, y, z, value, getBlock, outVertex)
 
   local vertex = mesh[index*6+i]
   local vx, vy, vz, u, v, normal, alpha = unpack(vertex)
-  local adj = blockTypes[value]
-  local adjAlpha = adj and adj.alpha or 1.0
 
-  if (value == 0 or (adjAlpha < 1.0 == 4 and block ~= value)) and mesh then
+  if (value == 0 or (translucent[value] and block ~= value)) and mesh then
     local dx, dy, dz = sign(vx), sign(vy), sign(vz)
     local nx, ny, nz = normal[1], normal[2], normal[3]
     local side1, side2, corner, m

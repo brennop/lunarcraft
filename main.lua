@@ -59,7 +59,7 @@ function love.draw()
   local w, h = love.graphics.getDimensions()
   love.graphics.circle("fill", w / 2, h / 2, 2)
 
-  debug("FPS:", love.timer.getFPS())
+  -- debug("FPS:", love.timer.getFPS())
 
   for i, v in ipairs(_debug) do
     love.graphics.print(v, 10, 10 + (i - 1) * 20)
