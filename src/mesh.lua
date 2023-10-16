@@ -1,6 +1,3 @@
-local CHUNK_SIZE = 8
-local CHUNK_HEIGHT = 32
-
 local blockTypes = require "src.blocks"
 
 local shading = {

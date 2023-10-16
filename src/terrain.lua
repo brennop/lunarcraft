@@ -109,23 +109,6 @@ function Terrain:addTrees(blocks)
   end
 end
 
-function Terrain:carveCaves(blocks)
-  for i = 1, CHUNK_SIZE do
-    for j = 1, CHUNK_HEIGHT do
-      for k = 1, CHUNK_SIZE do
-        local noise = love.math.noise(i * 0.1, j * 0.1, k * 0.1)
-        local height = self.heightMap[i][k]
-
-        -- local caveThreshold = j / CHUNK_HEIGHT * 0.3 + 0.4
-
-        if noise > 0.6 then
-          blocks[i][j][k] = 0
-        end
-      end
-    end
-  end
-end
-
 function Terrain:generateChunk(wx, wz)
   local blocks = {}
 
@@ -152,8 +135,6 @@ function Terrain:generateChunk(wx, wz)
       end
     end
   end
-
-  self:carveCaves(blocks)
 
   self:addWater(blocks)
   self:addTrees(blocks)

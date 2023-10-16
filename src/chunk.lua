@@ -4,6 +4,8 @@ local blockTypes = require "src.blocks"
 local Vector = require "src.vector"
 local Matrix = require "src.matrix"
 
+local getMesh = require "src.load_mesh"
+
 -- TODO: use less memory for the vertex
 local format = {
   { "VertexPosition", "float", 3 }, -- 12 bytes
@@ -52,7 +54,7 @@ function Chunk.decodeIndex(index)
   return i, j, k
 end
 
-function Chunk:load(thread)
+function Chunk:load()
   self.dirty = false
 
   -- each vertex is currently 36 bytes
@@ -71,7 +73,16 @@ function Chunk:load(thread)
     end
   end
 
-  thread:start(self.position:table(), blocks, self.channel, blockTypes, self.verticesData)
+  numVertices = getMesh(self.position:table(), blocks, blockTypes, self.verticesData)
+
+  if self.mesh then self.mesh:release() end
+
+  self.mesh = love.graphics.newMesh(format, numVertices, "triangles", "static")
+  self.mesh:setTexture(tileset)
+
+  self.mesh:setVertices(self.verticesData, 1, numVertices)
+
+  self.verticesData:release()
 end
 
 function Chunk:getBlock(x, y, z)
@@ -114,19 +125,6 @@ function Chunk:setBlock(x, y, z, block)
 end
 
 function Chunk:update()
-  local message = love.thread.getChannel(self.channel):pop()
-
-  if message then
-    local numVertices = message
-
-    if self.mesh then self.mesh:release() end
-
-    self.mesh = love.graphics.newMesh(format, numVertices, "triangles", "static")
-    self.mesh:setTexture(tileset)
-    self.mesh:setVertices(self.verticesData, 1, numVertices)
-
-    self.verticesData:release()
-  end
 end
 
 function Chunk:draw()

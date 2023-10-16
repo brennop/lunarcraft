@@ -1,8 +1,5 @@
--- to be run on another thread
 local CHUNK_SIZE = 16
 local CHUNK_HEIGHT = 48
-
-local position, blocks, channel, blockTypes, data = ...
 
 local getVertex = require "src.mesh"
 
@@ -17,11 +14,12 @@ typedef struct {
 } ck_vertex;
 ]]
 
-local function getBlock(i, j, k)
-  return blocks[i][j][k]
-end
 
-function getMesh()
+function getMesh(position, blocks, blockTypes, data)
+  local function getBlock(i, j, k)
+    return blocks[i][j][k]
+  end
+
   local pointer = ffi.cast('ck_vertex*', data:getFFIPointer())
 
   local vi = 0
@@ -53,7 +51,7 @@ function getMesh()
     end
   end
 
-  love.thread.getChannel(channel):supply(vi)
+  return vi
 end
 
-getMesh()
+return getMesh
