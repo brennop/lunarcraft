@@ -66,8 +66,14 @@ function Chunk:load()
     for j = 0, CHUNK_HEIGHT + 1 do
       blocks[i][j] = {}
       for k = 0, CHUNK_SIZE + 1 do
-        local x, y, z = self.position.x + i, self.position.y + j, self.position.z + k
-        blocks[i][j][k] = self.world:getBlock(x, y, z)
+        if i == 0 or i == CHUNK_SIZE + 1 or
+           j == 0 or j == CHUNK_HEIGHT + 1 or
+           k == 0 or k == CHUNK_SIZE + 1 then
+          local x, y, z = self.position.x + i, self.position.y + j, self.position.z + k
+          blocks[i][j][k] = self.world:getBlock(x, y, z)
+        else
+          blocks[i][j][k] = self.blocks[i][j][k]
+        end
       end
     end
   end

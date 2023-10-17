@@ -19,16 +19,6 @@ local shading = {
   0.3, 0.4, 0.6, 1,
 }
 
-function sign(value)
-  if value > 0 then
-    return 1
-  elseif value < 0 then
-    return -1
-  else
-    return 0
-  end
-end
-
 local translucent = {
   [4] = true,
   [7] = true,
@@ -40,9 +30,8 @@ local function setVertex(index, i, mesh, x, y, z, value, getBlock, pointer, vi)
   if not mesh then return false end
 
   local vertex = mesh[index*6+i]
-  local vx, vy, vz, u, v, normal, alpha = unpack(vertex)
+  local vx, vy, vz, u, v, normal, alpha, dx, dy, dz = unpack(vertex)
 
-  local dx, dy, dz = sign(vx), sign(vy), sign(vz)
   local nx, ny, nz = normal[1], normal[2], normal[3]
   local side1, side2, corner, m
 

@@ -45,6 +45,17 @@ local faces = {
   { 5, 3, 1, 2, 3, 4, 6 },  -- left
 }
 
+
+local function sign(value)
+  if value > 0 then
+    return 1
+  elseif value < 0 then
+    return -1
+  else
+    return 0
+  end
+end
+
 return function(textures, config)
   local cube = {}
 
@@ -72,7 +83,10 @@ return function(textures, config)
         u + uvs[uv][1] * step,
         v + uvs[uv][2] * step,
         normals[normal],
-        alpha
+        alpha,
+        sign(vertices[vertex][1] * 0.5),
+        sign(vertices[vertex][2] * 0.5),
+        sign(vertices[vertex][3] * 0.5),
       }
     end
   end
