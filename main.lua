@@ -5,6 +5,8 @@ CHUNK_HEIGHT = 48
 
 local Player = require "src.player"
 
+local profile = require "jit.p"
+
 _debug = {}
 function debug(...)
   local vars = {...}
@@ -24,13 +26,18 @@ function love.mousepressed(x, y, button)
 end
 
 function love.keypressed(key)
-  if key == "escape" then love.event.quit() end
+  if key == "escape" then 
+    love.event.quit() 
+    profile.stop()
+  end
   if key == "f3" then love.window.setFullscreen(not love.window.getFullscreen()) end
   if key == "f2" then love.graphics.captureScreenshot(os.time() .. ".png") end
   if key == "k" then world:save() end
 end
 
 function love.load()
+  profile.start "l"
+
   love.mouse.setRelativeMode(true)
   love.graphics.setDefaultFilter("nearest", "nearest")
 

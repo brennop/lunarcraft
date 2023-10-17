@@ -26,10 +26,9 @@ function getMesh(position, blocks, blockTypes, data)
 
   function setFace(index, mesh, x, y, z, value)
     for i = 1, 6 do
-      local vertex = pointer[vi]
-      local vertexData = setVertex(index, i, mesh, x, y, z, value, getBlock, vertex)
+      if value == 0 and mesh then
+        setVertex(index, i, mesh, x, y, z, value, getBlock, pointer, vi)
 
-      if vertexData then
         vi = vi + 1
       end
     end

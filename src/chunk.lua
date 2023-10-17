@@ -55,6 +55,8 @@ function Chunk.decodeIndex(index)
 end
 
 function Chunk:load()
+  local start_time = love.timer.getTime()
+
   self.dirty = false
 
   -- each vertex is currently 36 bytes
@@ -83,6 +85,10 @@ function Chunk:load()
   self.mesh:setVertices(self.verticesData, 1, numVertices)
 
   self.verticesData:release()
+
+  -- print time
+  local end_time = love.timer.getTime()
+  print("Chunk loaded in "..(end_time - start_time).." seconds")
 end
 
 function Chunk:getBlock(x, y, z)
