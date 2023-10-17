@@ -5,8 +5,6 @@ CHUNK_HEIGHT = 48
 
 local Player = require "src.player"
 
-local profile = require "jit.p"
-
 _debug = {}
 function debug(...)
   local vars = {...}
@@ -16,6 +14,8 @@ function debug(...)
   end
   table.insert(_debug, str)
 end
+
+load_times = {}
 
 function love.mousemoved(x, y, dx, dy)
   player:updateDirection(dx, dy)
@@ -28,7 +28,6 @@ end
 function love.keypressed(key)
   if key == "escape" then 
     love.event.quit() 
-    profile.stop()
   end
   if key == "f3" then love.window.setFullscreen(not love.window.getFullscreen()) end
   if key == "f2" then love.graphics.captureScreenshot(os.time() .. ".png") end
@@ -36,8 +35,6 @@ function love.keypressed(key)
 end
 
 function love.load()
-  profile.start "l"
-
   love.mouse.setRelativeMode(true)
   love.graphics.setDefaultFilter("nearest", "nearest")
 

@@ -5,13 +5,17 @@ local Terrain = require "src.terrain"
 
 local World = {}
 
+local profile = require "jit.p"
+
+local DEBUG_first_update = true
+
 function World:new()
   self.chunks = {}
   self.terrain = Terrain()
 
   -- self:load()
 
-  self:loadChunk(0, 0)
+  -- self:loadChunk(0, 0)
 
   return self
 end
@@ -81,19 +85,6 @@ function World:setBlock(x, y, z, block)
   end
 end
 
-function World:updateBlockMesh(x, y, z)
-  for dx = -1, 1 do
-    for dz = -1, 1 do
-      local ix, iz = x + dx, z + dz
-      local chunk = self:getChunk(ix, iz)
-
-      chunk:updateBlockMesh(ix, y, iz)
-      chunk:updateBlockMesh(ix, y - 1, iz)
-      chunk:updateBlockMesh(ix, y + 1, iz)
-    end
-  end
-end
-
 function World:loadChunk(x, z)
   local chunk = self:getChunk(x, z)
 
@@ -105,6 +96,10 @@ function World:loadChunk(x, z)
 end
 
 function World:update(dt)
+  if not DEBUG_first_update then
+    profile.start "Fl3"
+  end
+
   for i, v in pairs(self.chunks) do
     for j, chunk in pairs(v) do
       if chunk.loaded then
@@ -119,6 +114,23 @@ function World:update(dt)
       chunk.loaded = false
     end
   end
+
+  if not DEBUG_first_update then
+    profile.stop()
+
+    print("mean load time:")
+    local mean = 0
+    for i = 1, #load_times do
+      mean = mean + load_times[i]
+    end
+    mean = mean / #load_times
+    print(mean)
+
+    love.event.quit() 
+  end
+
+  DEBUG_first_update = false
+
 end
 
 function World:draw()

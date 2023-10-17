@@ -1,4 +1,19 @@
+local CHUNK_SIZE = 16
+local CHUNK_HEIGHT = 48
+
 local blockTypes = require "src.blocks"
+
+local ffi = require "ffi"
+
+ffi.cdef [[
+typedef struct {
+  float x, y, z;
+  float u, v;
+  float nx, ny, nz;
+  unsigned char r, g, b, a;
+} ck_vertex;
+]]
+
 
 local shading = {
   0.3, 0.4, 0.6, 1,
@@ -19,7 +34,7 @@ local translucent = {
   [7] = true,
 }
 
-function setVertex(index, i, mesh, x, y, z, value, getBlock, pointer, vi)
+local function setVertex(index, i, mesh, x, y, z, value, getBlock, pointer, vi)
   local block = getBlock(x, y, z)
 
   if not mesh then return false end
@@ -65,4 +80,42 @@ function setVertex(index, i, mesh, x, y, z, value, getBlock, pointer, vi)
   outVertex.r, outVertex.g, outVertex.b, outVertex.a = s, s, s, alpha * 255
 end
 
-return setVertex
+function getMesh(position, blocks, blockTypes, data)
+  local function getBlock(i, j, k)
+    return blocks[i][j][k]
+  end
+
+  local pointer = ffi.cast('ck_vertex*', data:getFFIPointer())
+
+  local vi = 0
+
+  function setFace(index, mesh, x, y, z, value)
+    if value == 0 and mesh then
+      for i = 1, 6 do
+        setVertex(index, i, mesh, x, y, z, value, getBlock, pointer, vi)
+
+        vi = vi + 1
+      end
+    end
+  end
+
+  for k = 1, CHUNK_SIZE do
+    for j = 1, CHUNK_HEIGHT do
+      for i = 1, CHUNK_SIZE do
+        local block = blocks[i][j][k]
+        local mesh = blockTypes[block]
+
+        setFace(0, mesh, i, j, k, getBlock(i, j, k + 1))
+        setFace(1, mesh, i, j, k, getBlock(i, j + 1, k))
+        setFace(2, mesh, i, j, k, getBlock(i, j, k - 1))
+        setFace(3, mesh, i, j, k, getBlock(i, j - 1, k))
+        setFace(4, mesh, i, j, k, getBlock(i + 1, j, k))
+        setFace(5, mesh, i, j, k, getBlock(i - 1, j, k))
+      end
+    end
+  end
+
+  return vi
+end
+
+return getMesh

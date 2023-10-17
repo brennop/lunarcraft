@@ -4,7 +4,7 @@ local blockTypes = require "src.blocks"
 local Vector = require "src.vector"
 local Matrix = require "src.matrix"
 
-local getMesh = require "src.load_mesh"
+local getMesh = require "src.mesh"
 
 -- TODO: use less memory for the vertex
 local format = {
@@ -32,8 +32,8 @@ function Chunk:new(x, y, z, world)
   self.model[8] = self.position.y
   self.model[12] = self.position.z
 
-  self.channel = self:__tostring()
-
+  -- each vertex is currently 36 bytes
+  self.verticesData = love.data.newByteData(maxVertices * 36)
 end
 
 function Chunk:__tostring()
@@ -59,9 +59,6 @@ function Chunk:load()
 
   self.dirty = false
 
-  -- each vertex is currently 36 bytes
-  self.verticesData = love.data.newByteData(maxVertices * 36)
-
   -- add 1 to the size to include the border
   local blocks = {}
   for i = 0, CHUNK_SIZE + 1 do
@@ -84,11 +81,9 @@ function Chunk:load()
 
   self.mesh:setVertices(self.verticesData, 1, numVertices)
 
-  self.verticesData:release()
-
   -- print time
   local end_time = love.timer.getTime()
-  print("Chunk loaded in "..(end_time - start_time).." seconds")
+  table.insert(load_times, end_time - start_time)
 end
 
 function Chunk:getBlock(x, y, z)
