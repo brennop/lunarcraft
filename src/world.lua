@@ -8,10 +8,23 @@ local World = {}
 function World:new()
   self.chunks = {}
   self.terrain = Terrain()
+  self.loadQueue = {}
 
   -- self:load()
 
   self:loadChunk(0, 0)
+
+  self.chunkLoader = coroutine.create(function()
+    while true do
+      local chunk = table.remove(self.loadQueue, 1)
+
+      if chunk then
+        chunk:load()
+      end
+
+      coroutine.yield()
+    end
+  end)
 
   return self
 end
@@ -49,6 +62,8 @@ function World:generateChunk(wx, wz)
 
   if self.chunks[x] == nil then self.chunks[x] = {} end
   self.chunks[x][z] = chunk
+
+  self:markDirty(chunk)
 end
 
 function World:getChunk(x, z)
@@ -104,20 +119,26 @@ function World:loadChunk(x, z)
   end
 end
 
+function World:markDirty(chunk)
+  if chunk.dirty then return end
+
+  chunk.dirty = true
+  table.insert(self.loadQueue, chunk)
+end
+
 function World:update(dt)
   for i, v in pairs(self.chunks) do
     for j, chunk in pairs(v) do
       if chunk.loaded then
-
-        if chunk.dirty then
-          chunk:load()
-        end
-
         chunk:update(dt)
       end
-
-      chunk.loaded = false
     end
+  end
+
+  debug(#self.loadQueue)
+
+  if #self.loadQueue > 0 then
+    coroutine.resume(self.chunkLoader)
   end
 end
 

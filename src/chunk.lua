@@ -23,7 +23,6 @@ function Chunk:new(x, y, z, world)
   self.blocks = self.world.terrain:generateChunk(self.position.x, self.position.z)
 
   self.loaded = false
-  self.dirty = true
 
   self.mesh = nil
 
@@ -111,7 +110,8 @@ function Chunk:setBlock(x, y, z, block)
 
   self.blocks[i][j][k] = block
 
-  self.dirty = true
+  -- mark chunk as dirty
+  self.world:markDirty(self)
 
   -- if border block, mark adjacent chunks as dirty
   local adjacentX, adjacentZ
@@ -127,8 +127,8 @@ function Chunk:setBlock(x, y, z, block)
     adjacentZ = self.world:getChunk(x, z + 1)
   end
 
-  if adjacentX then adjacentX.dirty = true end
-  if adjacentZ then adjacentZ.dirty = true end
+  if adjacentX then self.world:markDirty(adjacentX) end
+  if adjacentZ then self.world:markDirty(adjacentZ) end
 end
 
 function Chunk:update()
