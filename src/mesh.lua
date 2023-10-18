@@ -24,12 +24,9 @@ local translucent = {
   [7] = true,
 }
 
-local function setVertex(index, i, mesh, x, y, z, value, getBlock, pointer, vi)
+local function setVertex(vertex, x, y, z, value, getBlock, pointer, vi)
   local block = getBlock(x, y, z)
 
-  if not mesh then return false end
-
-  local vertex = mesh[index*6+i]
   local vx, vy, vz, u, v, normal, alpha, dx, dy, dz = unpack(vertex)
 
   local nx, ny, nz = normal[1], normal[2], normal[3]
@@ -78,10 +75,10 @@ function getMesh(position, blocks, blockTypes, data)
 
   local vi = 0
 
-  function setFace(index, mesh, x, y, z, value)
-    if value == 0 and mesh then
+  function setFace(index, mesh, x, y, z, value, block)
+    if (value == 0 or (translucent[value] and block ~= value)) and mesh then
       for i = 1, 6 do
-        setVertex(index, i, mesh, x, y, z, value, getBlock, pointer, vi)
+        setVertex(mesh[index * 6 + i], x, y, z, value, getBlock, pointer, vi)
 
         vi = vi + 1
       end
@@ -94,12 +91,12 @@ function getMesh(position, blocks, blockTypes, data)
         local block = blocks[i][j][k]
         local mesh = blockTypes[block]
 
-        setFace(0, mesh, i, j, k, getBlock(i, j, k + 1))
-        setFace(1, mesh, i, j, k, getBlock(i, j + 1, k))
-        setFace(2, mesh, i, j, k, getBlock(i, j, k - 1))
-        setFace(3, mesh, i, j, k, getBlock(i, j - 1, k))
-        setFace(4, mesh, i, j, k, getBlock(i + 1, j, k))
-        setFace(5, mesh, i, j, k, getBlock(i - 1, j, k))
+        setFace(0, mesh, i, j, k, getBlock(i, j, k + 1), block)
+        setFace(1, mesh, i, j, k, getBlock(i, j + 1, k), block)
+        setFace(2, mesh, i, j, k, getBlock(i, j, k - 1), block)
+        setFace(3, mesh, i, j, k, getBlock(i, j - 1, k), block)
+        setFace(4, mesh, i, j, k, getBlock(i + 1, j, k), block)
+        setFace(5, mesh, i, j, k, getBlock(i - 1, j, k), block)
       end
     end
   end

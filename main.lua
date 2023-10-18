@@ -5,6 +5,8 @@ CHUNK_HEIGHT = 48
 
 local Player = require "src.player"
 
+local profile = require "jit.p"
+
 _debug = {}
 function debug(...)
   local vars = {...}
@@ -27,6 +29,15 @@ end
 
 function love.keypressed(key)
   if key == "escape" then 
+    profile.stop()
+    print("mean load time:")
+    local mean = 0
+    for i = 1, #load_times do
+      mean = mean + load_times[i]
+    end
+    mean = mean / #load_times
+    print(mean)
+
     love.event.quit() 
   end
   if key == "f3" then love.window.setFullscreen(not love.window.getFullscreen()) end
@@ -35,6 +46,8 @@ function love.keypressed(key)
 end
 
 function love.load()
+  profile.start "Fl2"
+
   love.mouse.setRelativeMode(true)
   love.graphics.setDefaultFilter("nearest", "nearest")
 
