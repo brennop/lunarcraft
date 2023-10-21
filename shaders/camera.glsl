@@ -39,8 +39,13 @@ vec4 position( mat4 transform_projection, vec4 vertexPosition )
     fragPosShadowSpace = shadowProjectionMatrix * shadowViewMatrix * worldPosition;
 
     distance = length((viewMatrix * worldPosition).xyz);
-    
-    return projectionMatrix * viewMatrix * worldPosition;
+
+    vec4 result = projectionMatrix * viewMatrix * worldPosition;
+
+    // if drawing to a canvas, we need to flip the y coordinate
+    result.y *= -1.0;
+
+    return result;
 }
 #endif
 
@@ -92,9 +97,9 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
     float diff = max(lightDot, 0.0) + 0.5;
     float shadow = 1.0 - calculateShadow(fragPosShadowSpace, lightDot);
 
-    vec3 lightColor = vec3(0.8, 0.85, 0.65);
+    vec3 lightColor = vec3(0.85, 0.95, 0.55);
 
-    vec3 ambient = 0.7 * lightColor;
+    vec3 ambient = 0.6 * lightColor;
     vec3 diffuse = diff * lightColor;
 
     vec4 light = vec4(ambient + diffuse * shadow, 1.0);
@@ -111,8 +116,8 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
 
     f.a = 1.0;
 
-    float fogAmount = 1.0 - exp(-distance * 0.007);
-    vec4 fogColor = vec4(0.4, 0.45, 0.6, 1.0);
+    float fogAmount = 1.0 - exp(-distance * 0.01);
+    vec4 fogColor = vec4(0.4, 0.45, 0.5, 1.0);
     f = mix(f, fogColor, fogAmount);
 
     return f;

@@ -43,6 +43,8 @@ function Camera:new(world)
   self.shader = love.graphics.newShader("shaders/camera.glsl")
   self.light = Vector(16, 64, 20)
 
+  self.bloomShader = love.graphics.newShader("shaders/bloom.glsl")
+
   self.shadowMap = love.graphics.newCanvas(shadowMapResolution, shadowMapResolution,  { format = "depth24", readable = true })
   self.shadowMap:setWrap("clamp")
   self.shadowMap:setFilter("linear", "linear")
@@ -67,6 +69,10 @@ function Camera:new(world)
   end
   self.bayer = love.graphics.newImage(bayerData)
   self.shader:send("bayer", self.bayer)
+
+  local width, height = love.graphics:getDimensions()
+  self.canvas = love.graphics.newCanvas()
+  self.depth = love.graphics.newCanvas(width, height, { format = "depth24", readable = true })
 end
 
 function Camera:updateProjection(_fov)
@@ -162,8 +168,11 @@ end
 function Camera:draw()
   self:drawShadowMap()
 
-  love.graphics.setMeshCullMode("back")
+  love.graphics.setCanvas({ self.canvas, depthstencil = self.depth })
+  love.graphics.clear()
+
   love.graphics.setDepthMode("lequal", true)
+  love.graphics.setMeshCullMode("back")
   love.graphics.setShader(self.shader)
 
   self.shader:send("lightPos", { self.light.x, self.light.z, self.light.y })
@@ -177,6 +186,11 @@ function Camera:draw()
 
   self:drawWorld()
 
+  love.graphics.setShader()
+  love.graphics.setCanvas()
+
+  love.graphics.setShader(self.bloomShader)
+  love.graphics.draw(self.canvas, 0, 0, 0, 1, 1)
   love.graphics.setShader()
 end
 
