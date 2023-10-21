@@ -30,9 +30,6 @@ function Chunk:new(x, y, z, world)
   self.model[4] = self.position.x
   self.model[8] = self.position.y
   self.model[12] = self.position.z
-
-  -- each vertex is currently 36 bytes
-  self.verticesData = love.data.newByteData(maxVertices * 36)
 end
 
 function Chunk:__tostring()
@@ -54,6 +51,8 @@ function Chunk.decodeIndex(index)
 end
 
 function Chunk:load()
+  local start = love.timer.getTime()
+
   self.dirty = false
 
   -- add 1 to the size to include the border
@@ -75,14 +74,15 @@ function Chunk:load()
     end
   end
 
-  numVertices = getMesh(self.position:table(), blocks, blockTypes, self.verticesData)
+  local vertices = getMesh(self.position:table(), blocks)
 
   if self.mesh then self.mesh:release() end
 
-  self.mesh = love.graphics.newMesh(format, numVertices, "triangles", "static")
+  self.mesh = love.graphics.newMesh(format, vertices, "triangles", "static")
   self.mesh:setTexture(tileset)
 
-  self.mesh:setVertices(self.verticesData, 1, numVertices)
+  local elapsed = love.timer.getTime() - start
+  table.insert(self.world.debugChunkTimes, elapsed)
 end
 
 function Chunk:getBlock(x, y, z)

@@ -15,8 +15,6 @@ function debug(...)
   table.insert(_debug, str)
 end
 
-load_times = {}
-
 function love.mousemoved(x, y, dx, dy)
   player:updateDirection(dx, dy)
 end

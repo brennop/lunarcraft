@@ -1,4 +1,4 @@
-local bitser = require "lib.bitser"
+-- local bitser = require "lib.bitser"
 
 local Chunk = require "src.chunk"
 local Terrain = require "src.terrain"
@@ -9,6 +9,7 @@ function World:new()
   self.chunks = {}
   self.terrain = Terrain()
   self.loadQueue = {}
+  self.debugChunkTimes = {}
 
   -- self:load()
 
@@ -135,10 +136,15 @@ function World:update(dt)
     end
   end
 
-  debug(#self.loadQueue)
+  local chunkLatency = 0
+  for i, v in ipairs(self.debugChunkTimes) do
+    chunkLatency = chunkLatency + v
+  end
+  debug("time to load chunks:", chunkLatency / #self.debugChunkTimes)
 
   if #self.loadQueue > 0 then
-    coroutine.resume(self.chunkLoader)
+    local result, value = coroutine.resume(self.chunkLoader)
+    if not result then error(value) end
   end
 end
 
