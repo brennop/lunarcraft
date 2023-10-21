@@ -11,7 +11,7 @@ varying vec4 fragPosShadowSpace;
 
 varying vec3 vertexNormal;
 varying vec4 worldPosition;
-
+varying float distance;
 
 #ifdef VERTEX
 attribute vec3 VertexNormal;
@@ -24,6 +24,8 @@ vec4 position( mat4 transform_projection, vec4 vertexPosition )
 
     fragPosShadowSpace = shadowProjectionMatrix * shadowViewMatrix * worldPosition;
 
+    distance = length((viewMatrix * worldPosition).xyz);
+    
     return projectionMatrix * viewMatrix * worldPosition;
 }
 #endif
@@ -94,6 +96,11 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
       discard;
 
     f.a = 1.0;
+
+    float fogAmount = 1.0 - exp(-distance * 0.007);
+    vec4 fogColor = vec4(0.4, 0.45, 0.6, 1.0);
+    f = mix(f, fogColor, fogAmount);
+
     return f;
 }
 #endif
