@@ -54,8 +54,6 @@ function Chunk.decodeIndex(index)
 end
 
 function Chunk:load()
-  local start_time = love.timer.getTime()
-
   self.dirty = false
 
   -- add 1 to the size to include the border
@@ -85,10 +83,6 @@ function Chunk:load()
   self.mesh:setTexture(tileset)
 
   self.mesh:setVertices(self.verticesData, 1, numVertices)
-
-  -- print time
-  local end_time = love.timer.getTime()
-  table.insert(load_times, end_time - start_time)
 end
 
 function Chunk:getBlock(x, y, z)
