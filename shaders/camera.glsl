@@ -7,6 +7,8 @@ uniform Image shadowMap;
 uniform mat4 shadowProjectionMatrix;
 uniform mat4 shadowViewMatrix;
 
+uniform float time;
+
 varying vec4 fragPosShadowSpace;
 
 varying vec3 vertexNormal;
@@ -16,9 +18,21 @@ varying float distance;
 #ifdef VERTEX
 attribute vec3 VertexNormal;
 
+const float TIMESCALE = 1.5;
+
 vec4 position( mat4 transform_projection, vec4 vertexPosition )
 {
     worldPosition = modelMatrix * vertexPosition;
+
+    float alpha = VertexColor.a;
+
+    if (alpha < 1.0) {
+      float y = worldPosition.y 
+          + sin(time * TIMESCALE + worldPosition.x) * 0.1
+          + cos(time * TIMESCALE + worldPosition.z) * 0.08;
+
+      worldPosition.y = y;
+    }
 
     vertexNormal = VertexNormal;
 

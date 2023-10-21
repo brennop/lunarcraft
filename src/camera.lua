@@ -169,6 +169,7 @@ function Camera:draw()
   self.shader:send("lightPos", { self.light.x, self.light.z, self.light.y })
   self.shader:send("viewMatrix", self.view)
   self.shader:send("projectionMatrix", self.projection)
+  self.shader:send("time", love.timer.getTime())
 
   self.shader:send("shadowViewMatrix", self.shadowView)
   self.shader:send("shadowProjectionMatrix", self.shadowProjection)
