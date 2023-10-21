@@ -51,7 +51,7 @@ local function getVertex(vertex, x, y, z, value, getBlock, pointer, vi)
     vx + x, vy + y, vz + z,
     u, v,
     nx, ny, nz,
-    s, s, s, alpha * 255,
+    s, s, s, alpha,
   }
 end
 

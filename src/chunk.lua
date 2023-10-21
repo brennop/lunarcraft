@@ -82,7 +82,7 @@ function Chunk:load()
   self.mesh:setTexture(tileset)
 
   local elapsed = love.timer.getTime() - start
-  table.insert(self.world.debugChunkTimes, elapsed)
+  table.insert(self.world.debugChunkTimes, elapsed * 1000)
 end
 
 function Chunk:getBlock(x, y, z)
@@ -129,7 +129,7 @@ function Chunk:update()
 end
 
 function Chunk:draw()
-  if self.mesh then 
+  if self.mesh then
     love.graphics.getShader():send("modelMatrix", self.model)
     love.graphics.draw(self.mesh)
   end

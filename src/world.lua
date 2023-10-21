@@ -65,6 +65,17 @@ function World:generateChunk(wx, wz)
   self.chunks[x][z] = chunk
 
   self:markDirty(chunk)
+
+  -- mark adjacent chunks as dirty
+  local north = self:getChunk(wx, wz - CHUNK_SIZE)
+  local south = self:getChunk(wx, wz + CHUNK_SIZE)
+  local east = self:getChunk(wx + CHUNK_SIZE, wz)
+  local west = self:getChunk(wx - CHUNK_SIZE, wz)
+
+  if north then self:markDirty(north) end
+  if south then self:markDirty(south) end
+  if east then self:markDirty(east) end
+  if west then self:markDirty(west) end
 end
 
 function World:getChunk(x, z)
@@ -86,7 +97,8 @@ function World:getBlock(x, y, z)
     return chunk:getBlock(x, y, z)
   end
 
-  return 0
+  -- prevents ungenerated chunks from being treated as air
+  return -1
 end
 
 function World:setBlock(x, y, z, block)
