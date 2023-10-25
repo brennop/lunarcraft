@@ -4,7 +4,7 @@ local CHUNK_HEIGHT = 48
 local blockTypes = require "src.blocks"
 
 local shading = {
-  0.3, 0.4, 0.6, 1,
+  0.2, 0.3, 0.45, 1,
 }
 
 local translucent = {

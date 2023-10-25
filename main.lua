@@ -38,7 +38,7 @@ function love.load()
 
   love.filesystem.setIdentity("lunarcraft")
 
-  love.graphics.setBackgroundColor(0.65, 0.6, 0.95)
+  love.graphics.setBackgroundColor(135 / 255, 206 / 255, 233 / 255)
 
   local World = require "src.world"
 
